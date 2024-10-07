@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:power_apps_flutter/firebase_options.dart';
+import 'package:power_apps_flutter/utilities/login_page.dart';
 import 'utilities/create_request.dart';
 
 void main() async {
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/CreateRequest',
       routes: {
-        '/CreateRequest': (context) => CreateRequest(),
+        '/CreateRequest': (context) => LoginPage(),
       },
     );
   }
