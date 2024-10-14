@@ -1,29 +1,28 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:power_apps_flutter/utilities/home_director.dart';
 import 'package:power_apps_flutter/utilities/home_student.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: LoginPage(),
-    );
+  State createState() {
+    return _LoginPageState();
   }
 }
 
-class LoginPage extends StatefulWidget {
-  @override
-  _LoginPageState createState() => _LoginPageState();
-}
-
 class _LoginPageState extends State<LoginPage> {
+  @override
+  late String email, password;
+  final _formKey = GlobalKey<FormState>();
+  String _role = 'Estudiante'; // Solo por ahora
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _role = 'Estudiante'; 
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,31 +35,40 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Image.asset(
-                'lib/assets/escudo_universidad.png', 
+                'lib/assets/escudo_universidad.png',
                 height: 150,
               ),
               SizedBox(height: 20),
 
-              TextField(
+              // Correo universitario
+              TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Correo Universitario',
                   border: OutlineInputBorder(),
                 ),
+                keyboardType: TextInputType.emailAddress,
+                onSaved: (String? value) {
+                  email = value!;
+                },
               ),
               SizedBox(height: 20),
 
-              TextField(
+              // Contraseña
+              TextFormField(
                 controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
                   border: OutlineInputBorder(),
                 ),
+                onSaved: (String? value) {
+                  password = value!;
+                },
               ),
               SizedBox(height: 20),
 
-
+              // Dropdown de rol
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
@@ -88,18 +96,34 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20),
 
+              // Botón de login
               ElevatedButton(
-                onPressed: () {
-                  if (_role == 'Estudiante') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => StudentPage()),
-                    );
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => DirectorPage()),
-                    );
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    UserCredential? credenciales = await login(email, password);
+                    if (credenciales != null) {
+                      if (credenciales.user != null) {
+                        if (credenciales.user!.emailVerified) {
+                          // Navegación basada en el rol seleccionado
+                          if (_role == 'Estudiante') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => StudentPage()), 
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => DirectorPage()),
+                            );
+                          }
+                        } else {
+                          // Mensaje pal usuario
+                        }
+                      }
+                    }
                   }
                 },
                 child: Text('Iniciar Sesión'),
@@ -112,3 +136,17 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
+Future<UserCredential?> login(String email, String password) async {
+  try {
+    UserCredential userCredential = await FirebaseAuth.instance
+        .signInWithEmailAndPassword(email: email, password: password);
+    return userCredential;
+  } on FirebaseAuthException catch (e) {
+    if (e.code == 'user-not-found') {
+      // user no encontrado
+    }
+    if (e.code == 'wrong-password') {
+      // contraseña incorrecta
+    }
+  }
+}
