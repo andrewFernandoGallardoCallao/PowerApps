@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:power_apps_flutter/utilities/home_director.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:power_apps_flutter/utilities/create_user.dart';
 import 'package:power_apps_flutter/utilities/home_student.dart';
 
 class LoginPage extends StatefulWidget {
@@ -11,17 +12,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  @override
-  late String email, password;
   final _formKey = GlobalKey<FormState>();
-  String _role = 'Estudiante'; // Solo por ahora
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -40,93 +39,121 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20),
 
-              // Correo universitario
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Correo Universitario',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                onSaved: (String? value) {
-                  email = value!;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Contraseña
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  border: OutlineInputBorder(),
-                ),
-                onSaved: (String? value) {
-                  password = value!;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Dropdown de rol
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(color: Colors.grey),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _role,
-                    isExpanded: true,
-                    icon: Icon(Icons.arrow_drop_down),
-                    items: <String>['Estudiante', 'Director'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _role = newValue!;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-
-              // Botón de login
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    UserCredential? credenciales = await login(email, password);
-                    if (credenciales != null) {
-                      if (credenciales.user != null) {
-                        if (credenciales.user!.emailVerified) {
-                          // Navegación basada en el rol seleccionado
-                          if (_role == 'Estudiante') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => StudentPage()), 
-                            );
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DirectorPage()),
-                            );
-                          }
-                        } else {
-                          // Mensaje pal usuario
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Correo Universitario',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (String? value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingrese su correo';
                         }
-                      }
-                    }
-                  }
-                },
-                child: Text('Iniciar Sesión'),
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 20),
+
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (String? value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingrese su contraseña';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 20),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Color(0xFF950A67), 
+                          ),
+                          onPressed: () async {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              String email = _emailController.text;
+                              String password = _passwordController.text;
+
+                              if (email.isNotEmpty && password.isNotEmpty) {
+                                // Verificar con Firebase Authentication
+                                UserCredential? credenciales = await login(email, password);
+                                if (credenciales != null && credenciales.user != null) {
+                                  if (credenciales.user!.emailVerified) {
+                                    // Limpiar los campos de email y contraseña antes de navegar
+                                    _emailController.clear();
+                                    _passwordController.clear();
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => StudentPage()),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Por favor verifique su correo electrónico.')),
+                                    );
+                                  }
+                                } else {
+                                  // Autenticar con Firestore
+                                  bool isFirestoreAuth = await loginWithFirestore(email, password);
+                                  if (isFirestoreAuth) {
+                                    // Limpiar los campos de email y contraseña antes de navegar
+                                    _emailController.clear();
+                                    _passwordController.clear();
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => StudentPage()),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Correo o contraseña incorrectos.')),
+                                    );
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          child: Text('Iniciar Sesión', style: TextStyle(color: Colors.white)), 
+                        ),
+
+                        // Botón de Sign Up
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Color(0xFF950A67),
+                          ),
+                          onPressed: () {
+                            // Limpiar los campos de email y contraseña antes de navegar
+                            _emailController.clear();
+                            _passwordController.clear();
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateUserPage(),
+                              ),
+                            );
+                          },
+                          child: Text('Sign Up', style: TextStyle(color: Colors.white)), 
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -136,17 +163,43 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
+// Función con Firebase Authentication
 Future<UserCredential?> login(String email, String password) async {
   try {
-    UserCredential userCredential = await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email, password: password);
+    UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
     return userCredential;
   } on FirebaseAuthException catch (e) {
     if (e.code == 'user-not-found') {
-      // user no encontrado
+      print('Usuario no encontrado.');
+    } else if (e.code == 'wrong-password') {
+      print('Contraseña incorrecta.');
+    } else {
+      print('Error: ${e.message}');
     }
-    if (e.code == 'wrong-password') {
-      // contraseña incorrecta
+  } catch (e) {
+    print('Error general: $e');
+  }
+  return null;
+}
+
+// Función con student en Firestore
+Future<bool> loginWithFirestore(String email, String password) async {
+  try {
+    QuerySnapshot studentSnapshot = await FirebaseFirestore.instance
+        .collection('student')
+        .where('mail', isEqualTo: email) 
+        .where('password', isEqualTo: password) // Verificación directa (cambiar?)
+        .get();
+
+    if (studentSnapshot.docs.isNotEmpty) {
+      // Usuario autenticado correctamente
+      return true;
+    } else {
+      // Usuario no encontrado
+      return false;
     }
+  } catch (e) {
+    print('Error al autenticar con Firestore: $e');
+    return false;
   }
 }

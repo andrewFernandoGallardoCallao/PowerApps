@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:power_apps_flutter/utilities/home_director.dart';
 
 class StudentPage extends StatelessWidget {
   @override
