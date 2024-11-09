@@ -7,6 +7,7 @@ import Foundation
 
 import cloud_firestore
 import firebase_auth
+import file_selector_macos
 import firebase_core
 import firebase_storage
 import url_launcher_macos
