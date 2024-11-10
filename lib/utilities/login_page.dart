@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:power_apps_flutter/utilities/create_user.dart';
 import 'package:power_apps_flutter/utilities/home_student.dart';
 
@@ -39,15 +39,40 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20),
 
+              // Formulario
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
+                    // Correo
                     TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Correo Universitario',
-                        border: OutlineInputBorder(),
+                        labelStyle: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[800],
+                        ),
+                        hintText: 'ejemplo@est.univalle.edu',
+                        hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
+                        prefixIcon: Icon(
+                          Icons.email,
+                          color: Color(0xFF950A67),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF950A67), width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF950A67), width: 1),
+                        ),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (String? value) {
@@ -59,12 +84,36 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 20),
 
+                    // Contraseña
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
-                        border: OutlineInputBorder(),
+                        labelStyle: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[800],
+                        ),
+                        hintText: '********',
+                        hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
+                        prefixIcon: Icon(
+                          Icons.lock,
+                          color: Color(0xFF950A67),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF950A67), width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF950A67), width: 1),
+                        ),
                       ),
                       validator: (String? value) {
                         if (value == null || value.isEmpty) {
@@ -75,12 +124,17 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 20),
 
+                    // Botones de Login y Sign Up
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            primary: Color(0xFF950A67), 
+                            primary: Color(0xFF950A67), // Color del botón
+                            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: () async {
                             if (_formKey.currentState?.validate() ?? false) {
@@ -92,14 +146,12 @@ class _LoginPageState extends State<LoginPage> {
                                 UserCredential? credenciales = await login(email, password);
                                 if (credenciales != null && credenciales.user != null) {
                                   if (credenciales.user!.emailVerified) {
-                                    // Limpiar los campos de email y contraseña antes de navegar
                                     _emailController.clear();
                                     _passwordController.clear();
 
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(
-                                          builder: (context) => StudentPage()),
+                                      MaterialPageRoute(builder: (context) => StudentPage()),
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -110,14 +162,12 @@ class _LoginPageState extends State<LoginPage> {
                                   // Autenticar con Firestore
                                   bool isFirestoreAuth = await loginWithFirestore(email, password);
                                   if (isFirestoreAuth) {
-                                    // Limpiar los campos de email y contraseña antes de navegar
                                     _emailController.clear();
                                     _passwordController.clear();
 
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(
-                                          builder: (context) => StudentPage()),
+                                      MaterialPageRoute(builder: (context) => StudentPage()),
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -128,27 +178,28 @@ class _LoginPageState extends State<LoginPage> {
                               }
                             }
                           },
-                          child: Text('Iniciar Sesión', style: TextStyle(color: Colors.white)), 
+                          child: Text('Iniciar Sesión', style: TextStyle(color: Colors.white)),
                         ),
 
                         // Botón de Sign Up
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            primary: Color(0xFF950A67),
+                            primary: Color(0xFF950A67), // Color del botón
+                            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: () {
-                            // Limpiar los campos de email y contraseña antes de navegar
                             _emailController.clear();
                             _passwordController.clear();
 
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => CreateUserPage(),
-                              ),
+                              MaterialPageRoute(builder: (context) => CreateUserPage()),
                             );
                           },
-                          child: Text('Sign Up', style: TextStyle(color: Colors.white)), 
+                          child: Text('Sign Up', style: TextStyle(color: Colors.white)),
                         ),
                       ],
                     ),
@@ -188,14 +239,12 @@ Future<bool> loginWithFirestore(String email, String password) async {
     QuerySnapshot studentSnapshot = await FirebaseFirestore.instance
         .collection('student')
         .where('mail', isEqualTo: email) 
-        .where('password', isEqualTo: password) // Verificación directa (cambiar?)
+        .where('password', isEqualTo: password) 
         .get();
 
     if (studentSnapshot.docs.isNotEmpty) {
-      // Usuario autenticado correctamente
       return true;
     } else {
-      // Usuario no encontrado
       return false;
     }
   } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:power_apps_flutter/utilities/components/combo_box.dart';  // Importar ComboBox
 
 class CreateUserPage extends StatefulWidget {
   @override
@@ -92,7 +93,11 @@ class _CreateUserState extends State<CreateUserPage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(7),
-          borderSide: BorderSide(color: Color(0xFF6D8586)),
+          borderSide: BorderSide(color: Color(0xFF950A67)),
+        ),
+        prefixIcon: Icon(
+          Icons.email,
+          color: Color(0xFF950A67),
         ),
       ),
       keyboardType: TextInputType.emailAddress,
@@ -119,7 +124,11 @@ class _CreateUserState extends State<CreateUserPage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(7),
-          borderSide: BorderSide(color: Color(0xFF6D8586)),
+          borderSide: BorderSide(color: Color(0xFF950A67)),
+        ),
+        prefixIcon: Icon(
+          Icons.lock,
+          color: Color(0xFF950A67),
         ),
       ),
       obscureText: true,
@@ -127,9 +136,7 @@ class _CreateUserState extends State<CreateUserPage> {
         if (value == null || value.isEmpty) {
           return 'Por favor ingrese una contraseña';
         }
-        // Verificación de contraseña segura
-        final passwordRegExp =
-            RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$');
+        final passwordRegExp = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$');
         if (!passwordRegExp.hasMatch(value)) {
           return 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial';
         }
@@ -139,37 +146,26 @@ class _CreateUserState extends State<CreateUserPage> {
   }
 
   Widget buildCareerDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedCareer,
-      hint: Text('Seleccione su carrera'),
-      items: <String>['Arquitectura', 'Economía', 'Ing. Sistemas', 'Ing. Civil', 'Medicina', 'Derecho']
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value, style: TextStyle(color: Color(0xFF950A67))),
-        );
-      }).toList(),
+    return ComboBox(
+      itemsList: [
+        'Arquitectura', 
+        'Economía', 
+        'Ing. Sistemas', 
+        'Ing. Civil', 
+        'Medicina', 
+        'Derecho'
+      ],
+      hintText: 'Carrera',
+      icon: Icon(
+        Icons.school,
+        color: Color(0xFF950A67),
+      ),
+      selectedValue: _selectedCareer,
       onChanged: (newValue) {
         setState(() {
           _selectedCareer = newValue;
         });
       },
-      validator: (value) {
-        if (value == null) {
-          return 'Por favor seleccione una carrera';
-        }
-        return null;
-      },
-      decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
-          borderSide: BorderSide(color: Color(0xFF950A67)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
-          borderSide: BorderSide(color: Color(0xFF6D8586)),
-        ),
-      ),
     );
   }
 
@@ -233,7 +229,7 @@ Future<UserCredential?> createU(
         .doc(userCredential.user?.uid)
         .set({
       'mail': email,
-      'password': password, // encriptar la contraseña
+      'password': password, // encriptar la contraseña(falta)
       'career': career,
     });
 

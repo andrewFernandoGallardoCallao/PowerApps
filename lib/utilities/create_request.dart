@@ -40,88 +40,79 @@ class CreateRequestState extends State<CreateRequest> {
 
   List<String> carreras = ['ISI', 'MDC', 'UI', 'Arquitectura'];
 
-  /// Selección del archivo.
   Future<void> selectFile() async {
-  try {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'png', 'jpeg', 'docx'],
-      allowMultiple: true,  // Permitir selección múltiple
-    );
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'png', 'jpeg', 'docx'],
+        allowMultiple: true,
+      );
 
-    if (result != null && result.files.isNotEmpty) {
-      for (var file in result.files) {
-        if (kIsWeb) {
-          // En Web, guardamos los bytes y el nombre del archivo.
-          fileBytes.add(file.bytes!);
-          fileNames.add(file.name);
-        } else {
-          // En Móvil/Escritorio, obtenemos la ruta y el nombre.
-          final path = file.path;
-          if (path != null) {
-            setState(() {
-              selectedFile = File(path);
-              fileNames.add(file.name);
-            });
+      if (result != null && result.files.isNotEmpty) {
+        for (var file in result.files) {
+          if (kIsWeb) {
+            fileBytes.add(file.bytes!);
+            fileNames.add(file.name);
+          } else {
+            final path = file.path;
+            if (path != null) {
+              setState(() {
+                selectedFile = File(path);
+                fileNames.add(file.name);
+              });
+            }
           }
         }
-      }
-      print('Archivos seleccionados: $fileNames');
-    } else {
-      print('No se seleccionaron archivos.');
-    }
-  } catch (e) {
-    Toast.show(context, e.toString());
-  }
-}
-
-
-  /// Subir archivo y agregar la solicitud.
-  Future<void> addRequest() async {
-  if (nameController.text.isEmpty ||
-      ciController.text.isEmpty ||
-      selectedCarrera == null ||
-      fileNames.isEmpty) {
-    print("Por favor, complete todos los campos.");
-    return;
-  }
-
-  try {
-    fileUrls.clear(); // Limpiar la lista de URLs antes de subir
-
-    // Subir archivos uno por uno y almacenar sus URLs
-    for (int i = 0; i < fileNames.length; i++) {
-      String downloadUrl;
-      if (kIsWeb) {
-        downloadUrl = await uploadFileWeb(fileBytes[i], fileNames[i]);
+        print('Archivos seleccionados: $fileNames');
       } else {
-        downloadUrl = await uploadFileMobile(fileNames[i]);
+        print('No se seleccionaron archivos.');
       }
-      fileUrls.add(downloadUrl); // Agregar la URL a la lista
+    } catch (e) {
+      Toast.show(context, e.toString());
+    }
+  }
+
+  Future<void> addRequest() async {
+    if (nameController.text.isEmpty ||
+        ciController.text.isEmpty ||
+        selectedCarrera == null ||
+        fileNames.isEmpty) {
+      print("Por favor, complete todos los campos.");
+      return;
     }
 
-    // Guardar los datos en Firestore
-    await firestore.collection('request').add({
-      'name': nameController.text,
-      'ci': ciController.text,
-      'phone': phoneController.text,
-      'cell': cellPhonelController.text,
-      'carrera': selectedCarrera,
-      'evidence_urls': fileUrls,  // Guardar la lista de URLs
-      'evidence_names': fileNames,  // Guardar la lista de nombres
-      'estado': 'Pendiente',
-      'fecha': selectedDate?.toIso8601String() ?? 'Fecha no seleccionada',
-    });
+    try {
+      fileUrls.clear();
 
-    showAnimatedSnackBar(context, 'Solicitud Creada');
-    clearFields();
-  } catch (e) {
-    print("Error al enviar solicitud: $e");
+      for (int i = 0; i < fileNames.length; i++) {
+        String downloadUrl;
+        if (kIsWeb) {
+          downloadUrl = await uploadFileWeb(fileBytes[i], fileNames[i]);
+        } else {
+          downloadUrl = await uploadFileMobile(fileNames[i]);
+        }
+        fileUrls.add(downloadUrl);
+      }
+
+      await firestore.collection('request').add({
+        'name': nameController.text,
+        'ci': ciController.text,
+        'phone': phoneController.text,
+        'cell': cellPhonelController.text,
+        'carrera': selectedCarrera,
+        'evidence_urls': fileUrls,
+        'evidence_names': fileNames,
+        'estado': 'Pendiente',
+        'fecha': selectedDate?.toIso8601String() ?? 'Fecha no seleccionada',
+      });
+
+      showAnimatedSnackBar(context, 'Solicitud Creada');
+      clearFields();
+    } catch (e) {
+      print("Error al enviar solicitud: $e");
+    }
   }
-}
 
-
-  /// Subida del archivo en Web.
   Future<String> uploadFileWeb(Uint8List bytes, String fileName) async {
     final storageRef = storage.ref().child('evidences/$fileName');
     final metadata = SettableMetadata(contentType: _getMimeType(fileName));
@@ -129,14 +120,12 @@ class CreateRequestState extends State<CreateRequest> {
     return await storageRef.getDownloadURL();
   }
 
-  /// Subida del archivo en Móvil/Escritorio.
   Future<String> uploadFileMobile(String fileName) async {
     final storageRef = storage.ref().child('evidences/$fileName');
     await storageRef.putFile(selectedFile!);
     return await storageRef.getDownloadURL();
   }
 
-  /// Obtener el tipo MIME del archivo.
   String _getMimeType(String fileName) {
     if (fileName.endsWith('.docx')) {
       return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -151,7 +140,6 @@ class CreateRequestState extends State<CreateRequest> {
     }
   }
 
-  /// Limpiar los campos después de enviar la solicitud.
   void clearFields() {
     nameController.clear();
     ciController.clear();
@@ -169,15 +157,22 @@ class CreateRequestState extends State<CreateRequest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: const Icon(Icons.arrow_back, size: 25),
+        leading: const Icon(
+          Icons.arrow_back, 
+          size: 25,
+          color: Colors.white,
+        ),
         title: const Text(
           'Crear Solicitud',
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontSize: 30, 
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
-        backgroundColor: const Color.fromRGBO(96, 36, 68, 1),
+        backgroundColor: const Color(0xFF950A67),
       ),
       body: Center(
         child: Container(
@@ -186,58 +181,39 @@ class CreateRequestState extends State<CreateRequest> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            elevation: 4,
+            elevation: 8,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextFormFieldModel(
+                    _buildTextField(
                       controller: nameController,
-                      textAttribute: 'Nombre',
-                      inputFormatter: [
-                        FilteringTextInputFormatter.singleLineFormatter
-                      ],
-                      icon: const Icon(
-                        Icons.person,
-                        color: mainColor,
-                      ),
+                      label: 'Nombre',
+                      icon: const Icon(Icons.person, color: Color(0xFF950A67)),
                     ),
                     const SizedBox(height: 20),
-                    TextFormFieldModel(
+                    _buildTextField(
                       controller: ciController,
-                      textAttribute: 'Ci/Pasaporte',
-                      inputFormatter: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      icon: const Icon(
-                        Icons.badge,
-                        color: mainColor,
-                      ),
+                      label: 'Ci/Pasaporte',
+                      icon: const Icon(Icons.badge, color: Color(0xFF950A67)),
+                      inputFormatter: [FilteringTextInputFormatter.digitsOnly],
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 20),
-                    TextFormFieldModel(
+                    _buildTextField(
                       controller: phoneController,
-                      textAttribute: 'Teléfono',
+                      label: 'Teléfono',
+                      icon: const Icon(Icons.phone, color: Color(0xFF950A67)),
+                      inputFormatter: [FilteringTextInputFormatter.digitsOnly],
                       keyboardType: TextInputType.phone,
-                      icon: const Icon(
-                        Icons.phone,
-                        color: mainColor,
-                      ),
-                      inputFormatter: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
                     ),
                     const SizedBox(height: 20),
-                    TextFormFieldModel(
+                    _buildTextField(
                       controller: cellPhonelController,
-                      textAttribute: 'Numero de Celular',
-                      icon: const Icon(
-                        Icons.phone_android_outlined,
-                        color: mainColor,
-                      ),
+                      label: 'Numero de Celular',
+                      icon: const Icon(Icons.phone_android_outlined, color: Color(0xFF950A67)),
                       inputFormatter: [FilteringTextInputFormatter.digitsOnly],
                     ),
                     const SizedBox(height: 20),
@@ -253,10 +229,7 @@ class CreateRequestState extends State<CreateRequest> {
                       itemsList: carreras,
                       hintText: 'Carrera',
                       selectedValue: selectedCarrera,
-                      icon: const Icon(
-                        Icons.school,
-                        color: mainColor,
-                      ),
+                      icon: const Icon(Icons.school, color: Color(0xFF950A67)),
                       onChanged: (String? newValue) {
                         setState(() {
                           selectedCarrera = newValue;
@@ -265,13 +238,30 @@ class CreateRequestState extends State<CreateRequest> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF950A67),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: selectFile,
                       child: const Text('Adjuntar Evidencia'),
                     ),
+                    const SizedBox(height: 10),
                     if (selectedFileName != null)
                       Text('Archivo seleccionado: $selectedFileName'),
                     const SizedBox(height: 20),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF950A67),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: addRequest,
                       child: const Text('Enviar Solicitud'),
                     ),
@@ -280,6 +270,37 @@ class CreateRequestState extends State<CreateRequest> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required Icon icon,
+    List<TextInputFormatter>? inputFormatter,
+    TextInputType? keyboardType,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatter,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 18),
+        prefixIcon: icon,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF950A67)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF950A67)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF950A67)),
         ),
       ),
     );

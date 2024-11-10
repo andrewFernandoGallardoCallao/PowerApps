@@ -12,31 +12,41 @@ class PermisosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista de Permisos'),
+        title: const Text(
+          'Lista de Permisos',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: mainColor,
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Nombre',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0), 
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Nombre',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  'Estado',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    'Estado',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const Divider(thickness: 2),
             Expanded(
@@ -147,8 +157,13 @@ class PermisosScreen extends StatelessWidget {
                                         vertical: 8,
                                       ),
                                     ),
-                                    child: const Text('Aceptar',
-                                        style: TextStyle(fontSize: 16)),
+                                    child: const Text(
+                                      'Aceptar',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 10),
                                   ElevatedButton(
@@ -166,8 +181,13 @@ class PermisosScreen extends StatelessWidget {
                                         vertical: 8,
                                       ),
                                     ),
-                                    child: const Text('Cancelar',
-                                        style: TextStyle(fontSize: 16)),
+                                    child: const Text(
+                                      'Cancelar',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -320,22 +340,21 @@ class PermisosScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje, style: const TextStyle(fontSize: 16)),
-        backgroundColor: Colors.black87,
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  Color getColor(String estadoPermiso) {
-    switch (estadoPermiso) {
+  Color getColor(String estado) {
+    switch (estado) {
       case 'Aprobado':
         return Colors.green;
       case 'Cancelado':
         return Colors.red;
       case 'Pendiente':
-        return Colors.yellow[800]!;
+        return Colors.orange;
       default:
-        return Colors.black;
+        return Colors.grey;
     }
   }
 }

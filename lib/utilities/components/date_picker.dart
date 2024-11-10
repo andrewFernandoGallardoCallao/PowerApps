@@ -21,15 +21,13 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(
-          const Duration(days: 30)), // Opcional: Controlar fechas mínimas
-      lastDate: DateTime.now()
-          .add(const Duration(days: 7)), // Opcional: Controlar fechas máximas
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now().add(const Duration(days: 7)),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color.fromRGBO(96, 36, 68, 1),
+              primary: Color(0xFF950A67), // Color principal
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -43,12 +41,10 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
       final difference = pickedDate.difference(DateTime.now()).inHours;
 
       if (difference > 72) {
-        // Si la fecha está fuera del rango de 72 horas, mostramos un SnackBar
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'La licencia no puede pedirse con más de 72 horas de anticipación.',
-            ),
+                'La licencia no puede pedirse con más de 72 horas de anticipación.'),
           ),
         );
       } else {
@@ -69,33 +65,38 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
       readOnly: true,
       onTap: () => _selectDate(context),
       decoration: InputDecoration(
-        hintText: 'Seleccione Fecha',
-        hintStyle: TextStyle(
+        labelText: 'Seleccione Fecha',
+        labelStyle: TextStyle(
           fontSize: 18,
+          color: Colors.grey[800], // Color del label
+        ),
+        hintText: 'Fecha de la licencia',
+        hintStyle: TextStyle(
+          fontSize: 14,
           color: Colors.grey[400],
         ),
         prefixIcon: const Icon(
           Icons.calendar_month,
-          color: Color.fromRGBO(96, 36, 68, 1),
+          color: Color(0xFF950A67), // Color del icono
         ),
-        filled: true,
-        fillColor: Colors.grey[300],
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
+        filled: true,
+        fillColor: Colors.grey[200], 
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Colors.black,
-            width: 1.5,
+            color: Color(0xFF950A67), 
+            width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Colors.grey,
-            width: 2,
+            color: Color(0xFF950A67), 
+            width: 1,
           ),
         ),
       ),
