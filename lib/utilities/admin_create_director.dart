@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:power_apps_flutter/utilities/components/combo_box.dart';
@@ -34,7 +36,7 @@ class _CreateDirectorState extends State<CreateDirector> {
           'name': nameController.text,
           'career': selectedCareer,
         });
-        showAnimatedSnackBar(context, 'Registo Exitoso');
+        showAnimatedSnackBar(context, 'Registo Exitoso', Colors.green);
         // Limpiar los campos después de registrar
         nameController.clear();
         setState(() {
