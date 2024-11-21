@@ -7,7 +7,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:power_apps_flutter/models/student.dart';
+import 'package:power_apps_flutter/utilities/components/combo_box.dart';
 import 'package:power_apps_flutter/utilities/components/date_picker.dart';
+import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/components/snack_bar.dart';
 import 'package:power_apps_flutter/utilities/components/toast.dart';
 
@@ -36,7 +38,13 @@ class CreateRequestState extends State<CreateRequest> {
   List<String> fileUrls = [];
   List<Uint8List> fileBytes = [];
 
-  List<String> carreras = ['ISI', 'MDC', 'UI', 'Arquitectura'];
+  List<String> subjects = [
+    'Programacion 1',
+    'Programación Web I',
+    'SQA',
+    'Base de Datos I'
+  ];
+  String? selectedSubject;
 
   /// Selección del archivo.
   Future<void> selectFile() async {
@@ -167,6 +175,20 @@ class CreateRequestState extends State<CreateRequest> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  ComboBox(
+                    itemsList: subjects,
+                    hintText: 'materia',
+                    icon: const Icon(
+                      Icons.auto_stories_outlined,
+                      color: mainColor,
+                    ),
+                    selectedValue: selectedSubject,
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedSubject = newValue;
+                      });
+                    },
+                  ),
                   const SizedBox(height: 20),
                   SimpleDatePickerFormField(
                     onDateSelected: (DateTime? date) {

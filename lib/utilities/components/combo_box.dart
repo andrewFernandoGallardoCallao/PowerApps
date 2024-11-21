@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:power_apps_flutter/utilities/components/main_color.dart';
 
 class ComboBox extends StatefulWidget {
   final List<String> itemsList;
@@ -8,7 +7,7 @@ class ComboBox extends StatefulWidget {
   final String? selectedValue;
   final ValueChanged<String?> onChanged; // Callback para notificar cambios
 
-  ComboBox({
+  const ComboBox({
     super.key,
     required this.itemsList,
     required this.hintText,

@@ -55,8 +55,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
     return StreamBuilder<QuerySnapshot>(
       stream: _getUserRequests(),
       builder: (context, snapshot) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return ListView(
           children: [
             Padding(
               padding: const EdgeInsets.all(15),
@@ -92,6 +91,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
 
   ListView _getRequest(AsyncSnapshot<QuerySnapshot<Object?>> snapshot) {
     return ListView(
+      shrinkWrap: true,
       padding: const EdgeInsets.all(10),
       children: snapshot.data!.docs.map((doc) {
         Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;

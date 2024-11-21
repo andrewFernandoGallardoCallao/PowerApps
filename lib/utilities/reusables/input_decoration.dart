@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-InputDecoration inputDecorationForm(String textAttribute, Icon icon) {
+InputDecoration inputDecorationForm(String textAttribute, Icon icon,
+    {bool? isPassword, VoidCallback? toggleVisibility}) {
   return InputDecoration(
     labelStyle: TextStyle(
       fontSize: 18,
@@ -13,6 +14,16 @@ InputDecoration inputDecorationForm(String textAttribute, Icon icon) {
     ),
     floatingLabelBehavior: FloatingLabelBehavior.always,
     prefixIcon: icon,
+    suffixIcon: isPassword != null
+        ? IconButton(
+            icon: Icon(
+              isPassword ? Icons.visibility_off : Icons.visibility,
+              color: Colors.grey[600],
+              size: 20,
+            ),
+            onPressed: toggleVisibility,
+          )
+        : null,
     filled: true,
     fillColor: Colors.grey[300],
     border: OutlineInputBorder(

@@ -30,16 +30,16 @@ class MyApp extends StatelessWidget {
         '/Login': (context) => const LoginPage(),
         '/CreateDirector': (context) => const CreateDirector(),
         '/PermisionScreen': (context) => PermisosScreen(),
-        // '/MenuStudent': (context) => StudentMainMenu(
-        //       student: Student(
-        //         id: 'ZQSnrNOqEQXe6Ma1NAi6sKOj00i2',
-        //         career: 'Ing. Sistemas',
-        //         mail: 'gca5001500@est.univalle.edu',
-        //         name: 'Andrew',
-        //         password: '123',
-        //         type: 'Student',
-        //       ),
-        //     )
+        '/MenuStudent': (context) => StudentMainMenu(
+              student: Student(
+                id: 'ZQSnrNOqEQXe6Ma1NAi6sKOj00i2',
+                career: 'Ing. Sistemas',
+                mail: 'gca5001500@est.univalle.edu',
+                name: 'Andrew',
+                password: '123',
+                type: 'Student',
+              ),
+            )
       },
     );
   }
