@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -5,15 +7,20 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:power_apps_flutter/models/student.dart';
 import 'package:power_apps_flutter/utilities/components/combo_box.dart';
 import 'package:power_apps_flutter/utilities/components/date_picker.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/components/snack_bar.dart';
-import 'package:power_apps_flutter/utilities/components/text_form_field_model.dart';
 import 'package:power_apps_flutter/utilities/components/toast.dart';
 
 class CreateRequest extends StatefulWidget {
-  const CreateRequest({Key? key}) : super(key: key);
+  final Student student;
+
+  const CreateRequest({
+    Key? key,
+    required this.student,
+  }) : super(key: key);
 
   @override
   CreateRequestState createState() => CreateRequestState();
@@ -23,12 +30,6 @@ class CreateRequestState extends State<CreateRequest> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController ciController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController cellPhonelController = TextEditingController();
-
-  String? selectedCarrera;
   String? selectedFileName;
   File? selectedFile;
   Uint8List? selectedBytes;
@@ -38,52 +39,56 @@ class CreateRequestState extends State<CreateRequest> {
   List<String> fileUrls = [];
   List<Uint8List> fileBytes = [];
 
-  List<String> carreras = ['ISI', 'MDC', 'UI', 'Arquitectura'];
+  List<String> subjects = [
+    'Programacion 1',
+    'Programación Web I',
+    'SQA',
+    'Base de Datos I'
+  ];
+  String? selectedSubject;
 
+  /// Selección del archivo.
   Future<void> selectFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'jpg', 'png', 'jpeg', 'docx'],
-        allowMultiple: true,
+        allowMultiple: true, // Permitir selección múltiple
       );
 
-      if (result != null && result.files.isNotEmpty) {
-        for (var file in result.files) {
-          if (kIsWeb) {
-            fileBytes.add(file.bytes!);
-            fileNames.add(file.name);
-          } else {
-            final path = file.path;
-            if (path != null) {
-              setState(() {
-                selectedFile = File(path);
-                fileNames.add(file.name);
-              });
+        if (result != null && result.files.isNotEmpty) {
+          for (var file in result.files) {
+            if (kIsWeb) {
+                fileBytes.add(file.bytes!);
+              fileNames.add(file.name);
+            } else {
+                final path = file.path;
+              if (path != null) {
+                setState(() {
+                  selectedFile = File(path);
+                  fileNames.add(file.name);
+                });
+              }
             }
           }
+          print('Archivos seleccionados: $fileNames');
+        } else {
+          print('No se seleccionaron archivos.');
         }
-        print('Archivos seleccionados: $fileNames');
-      } else {
-        print('No se seleccionaron archivos.');
+      } catch (e) {
+        Toast.show(context, e.toString());
       }
-    } catch (e) {
-      Toast.show(context, e.toString());
     }
-  }
-
   Future<void> addRequest() async {
-    if (nameController.text.isEmpty ||
-        ciController.text.isEmpty ||
-        selectedCarrera == null ||
-        fileNames.isEmpty) {
+    if (fileNames.isEmpty) {
       print("Por favor, complete todos los campos.");
       return;
     }
 
     try {
-      fileUrls.clear();
+      fileUrls.clear(); // Limpiar la lista de URLs antes de subir
 
+      // Subir archivos uno por uno y almacenar sus URLs
       for (int i = 0; i < fileNames.length; i++) {
         String downloadUrl;
         if (kIsWeb) {
@@ -91,28 +96,25 @@ class CreateRequestState extends State<CreateRequest> {
         } else {
           downloadUrl = await uploadFileMobile(fileNames[i]);
         }
-        fileUrls.add(downloadUrl);
+        fileUrls.add(downloadUrl); // Agregar la URL a la lista
       }
-
+      DocumentReference reference =
+          firestore.collection('student').doc(widget.student.id);
+      // Guardar los datos en Firestore
       await firestore.collection('request').add({
-        'name': nameController.text,
-        'ci': ciController.text,
-        'phone': phoneController.text,
-        'cell': cellPhonelController.text,
-        'carrera': selectedCarrera,
-        'evidence_urls': fileUrls,
-        'evidence_names': fileNames,
+        'evidence_urls': fileUrls, // Guardar la lista de URLs
+        'evidence_names': fileNames, // Guardar la lista de nombres
         'estado': 'Pendiente',
         'fecha': selectedDate?.toIso8601String() ?? 'Fecha no seleccionada',
+        'userReference': reference
       });
 
-      showAnimatedSnackBar(context, 'Solicitud Creada');
-      clearFields();
-    } catch (e) {
-      print("Error al enviar solicitud: $e");
+        showAnimatedSnackBar(context, 'Solicitud Creada', Colors.green);
+        clearFields();
+      } catch (e) {
+        print("Error al enviar solicitud: $e");
+      }
     }
-  }
-
   Future<String> uploadFileWeb(Uint8List bytes, String fileName) async {
     final storageRef = storage.ref().child('evidences/$fileName');
     final metadata = SettableMetadata(contentType: _getMimeType(fileName));
@@ -141,132 +143,65 @@ class CreateRequestState extends State<CreateRequest> {
   }
 
   void clearFields() {
-    nameController.clear();
-    ciController.clear();
-    phoneController.clear();
-    cellPhonelController.clear();
     setState(() {
       selectedFile = null;
       selectedBytes = null;
       selectedFileName = null;
-      selectedCarrera = null;
       selectedDate = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: const Icon(
-          Icons.arrow_back, 
-          size: 25,
-          color: Colors.white,
-        ),
-        title: const Text(
-          'Crear Solicitud',
-          style: TextStyle(
-            fontSize: 30, 
-            color: Colors.white,
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
           ),
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF950A67),
-      ),
-      body: Center(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            elevation: 8,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildTextField(
-                      controller: nameController,
-                      label: 'Nombre',
-                      icon: const Icon(Icons.person, color: Color(0xFF950A67)),
+          elevation: 40,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ComboBox(
+                    itemsList: subjects,
+                    hintText: 'materia',
+                    icon: const Icon(
+                      Icons.auto_stories_outlined,
+                      color: mainColor,
                     ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: ciController,
-                      label: 'Ci/Pasaporte',
-                      icon: const Icon(Icons.badge, color: Color(0xFF950A67)),
-                      inputFormatter: [FilteringTextInputFormatter.digitsOnly],
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: phoneController,
-                      label: 'Teléfono',
-                      icon: const Icon(Icons.phone, color: Color(0xFF950A67)),
-                      inputFormatter: [FilteringTextInputFormatter.digitsOnly],
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: cellPhonelController,
-                      label: 'Numero de Celular',
-                      icon: const Icon(Icons.phone_android_outlined, color: Color(0xFF950A67)),
-                      inputFormatter: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                    const SizedBox(height: 20),
-                    SimpleDatePickerFormField(
-                      onDateSelected: (DateTime? date) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    ComboBox(
-                      itemsList: carreras,
-                      hintText: 'Carrera',
-                      selectedValue: selectedCarrera,
-                      icon: const Icon(Icons.school, color: Color(0xFF950A67)),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedCarrera = newValue;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF950A67),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: selectFile,
-                      child: const Text('Adjuntar Evidencia'),
-                    ),
-                    const SizedBox(height: 10),
-                    if (selectedFileName != null)
-                      Text('Archivo seleccionado: $selectedFileName'),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF950A67),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: addRequest,
-                      child: const Text('Enviar Solicitud'),
-                    ),
-                  ],
-                ),
+                    selectedValue: selectedSubject,
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedSubject = newValue;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  SimpleDatePickerFormField(
+                    onDateSelected: (DateTime? date) {
+                      setState(() {
+                        selectedDate = date;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: selectFile,
+                    child: const Text('Adjuntar Evidencia'),
+                  ),
+                  if (selectedFileName != null)
+                    Text('Archivo seleccionado: $selectedFileName'),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: addRequest,
+                    child: const Text('Enviar Solicitud'),
+                  ),
+                ],
               ),
             ),
           ),

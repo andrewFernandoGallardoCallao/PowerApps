@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:power_apps_flutter/utilities/components/main_color.dart';
 
 class ComboBox extends StatefulWidget {
   final List<String> itemsList;

@@ -6,10 +6,10 @@ class AnimatedSnackBar extends StatefulWidget {
   const AnimatedSnackBar({Key? key, required this.message}) : super(key: key);
   
   @override
-  _AnimatedSnackBarState createState() => _AnimatedSnackBarState();
+  AnimatedSnackBarState createState() => AnimatedSnackBarState();
 }
 
-class _AnimatedSnackBarState extends State<AnimatedSnackBar>
+class AnimatedSnackBarState extends State<AnimatedSnackBar>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -43,7 +43,7 @@ class _AnimatedSnackBarState extends State<AnimatedSnackBar>
   @override
   Widget build(BuildContext context) {
     return SnackBar(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 5),
       content: AnimatedBuilder(
         animation: _animationController,
         builder: (context, child) {
@@ -51,11 +51,11 @@ class _AnimatedSnackBarState extends State<AnimatedSnackBar>
             scale: _animation,
             child: Row(
               children: [
-                Icon(Icons.check, color: Colors.white),
-                SizedBox(width: 8),
+                const Icon(Icons.check, color: Colors.white),
+                const SizedBox(width: 8),
                 Text(
                   widget.message,
-                  style: TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ],
             ),
@@ -66,7 +66,7 @@ class _AnimatedSnackBarState extends State<AnimatedSnackBar>
   }
 }
 
-void showAnimatedSnackBar(BuildContext context, String message) {
+void showAnimatedSnackBar(BuildContext context, String message, Color colorMessage) {
   final snackBar = SnackBar(
     duration: const Duration(seconds: 2),
     content: Row(
@@ -81,7 +81,7 @@ void showAnimatedSnackBar(BuildContext context, String message) {
       ],
     ),
     behavior: SnackBarBehavior.floating,
-    backgroundColor: Colors.green,
+    backgroundColor: colorMessage,
   );
 
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
