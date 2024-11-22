@@ -43,12 +43,12 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const SizedBox(height: 50), 
+                const SizedBox(height: 50),
                 Image.asset(
                   'lib/assets/img/escudoUni.png',
-                  height: sizeScreen.height / 4, 
+                  height: sizeScreen.height / 4,
                 ),
-                const SizedBox(height: 20), 
+                const SizedBox(height: 20),
                 const Text(
                   "Iniciar Sesión",
                   style: TextStyle(
@@ -116,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                     padding: const EdgeInsets.symmetric(
-                                      vertical: 15, 
+                                      vertical: 15,
                                     ),
                                     backgroundColor: mainColor,
                                   ),
@@ -160,8 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                                                       password:
                                                           userDoc['password'],
                                                       mail: userDoc['mail'],
-                                                      career:
-                                                          userDoc['career'],
+                                                      career: userDoc['career'],
                                                       type: userDoc['type'],
                                                     ),
                                                   ),
@@ -218,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 10), 
+                              const SizedBox(width: 10),
                               // Botón "Registrarse"
                               Expanded(
                                 child: ElevatedButton(

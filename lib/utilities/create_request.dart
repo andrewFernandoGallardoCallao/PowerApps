@@ -56,32 +56,32 @@ class CreateRequestState extends State<CreateRequest> {
         allowMultiple: true, // Permitir selección múltiple
       );
 
-        if (result != null && result.files.isNotEmpty) {
-          for (var file in result.files) {
-            if (kIsWeb) {
-                fileBytes.add(file.bytes!);
-              fileNames.add(file.name);
-            } else {
-                final path = file.path;
-              if (path != null) {
-                setState(() {
-                  selectedFile = File(path);
-                  fileNames.add(file.name);
-                });
-              }
+      if (result != null && result.files.isNotEmpty) {
+        for (var file in result.files) {
+          if (kIsWeb) {
+            fileBytes.add(file.bytes!);
+            fileNames.add(file.name);
+          } else {
+            final path = file.path;
+            if (path != null) {
+              setState(() {
+                selectedFile = File(path);
+                fileNames.add(file.name);
+              });
             }
           }
-          print('Archivos seleccionados: $fileNames');
-        } else {
-          print('No se seleccionaron archivos.');
         }
-      } catch (e) {
-        Toast.show(context, e.toString());
+        print('Archivos seleccionados: $fileNames');
+      } else {
+        print('No se seleccionaron archivos.');
       }
+    } catch (e) {
+      Toast.show(context, e.toString());
     }
+  }
+
   Future<void> addRequest() async {
-    if (fileNames.isEmpty) {
-      print("Por favor, complete todos los campos.");
+    if (!validateForm()) {
       return;
     }
 
@@ -105,16 +105,51 @@ class CreateRequestState extends State<CreateRequest> {
         'evidence_urls': fileUrls, // Guardar la lista de URLs
         'evidence_names': fileNames, // Guardar la lista de nombres
         'estado': 'Pendiente',
-        'fecha': selectedDate?.toIso8601String() ?? 'Fecha no seleccionada',
-        'userReference': reference
+        'fecha': selectedDate!.toIso8601String(),
+        'userReference': reference,
+        'subject': selectedSubject,
       });
 
-        showAnimatedSnackBar(context, 'Solicitud Creada', Colors.green);
-        clearFields();
-      } catch (e) {
-        print("Error al enviar solicitud: $e");
-      }
+      showAnimatedSnackBar(context, 'Solicitud Creada', Colors.green);
+      clearFields();
+    } catch (e) {
+      print("Error al enviar solicitud: $e");
+      showAnimatedSnackBar(context, 'Error al crear la solicitud', Colors.red);
     }
+  }
+
+  bool validateForm() {
+    if (selectedSubject == null) {
+      showAnimatedSnackBar(context, 'Por favor, seleccione una materia', Colors.red);
+      return false;
+    }
+
+    if (selectedDate == null) {
+      showAnimatedSnackBar(context, 'Por favor, seleccione una fecha', Colors.red);
+      return false;
+    }
+
+    final now = DateTime.now();
+    final threeDaysAgo = now.subtract(const Duration(days: 3));
+
+    if (selectedDate!.isAfter(now)) {
+      showAnimatedSnackBar(context, 'La fecha no puede ser futura', Colors.red);
+      return false;
+    }
+
+    if (selectedDate!.isBefore(threeDaysAgo)) {
+      showAnimatedSnackBar(context, 'La fecha no puede ser más de 3 días en el pasado', Colors.red);
+      return false;
+    }
+
+    if (fileNames.isEmpty) {
+      showAnimatedSnackBar(context, 'Por favor, adjunte al menos un archivo', Colors.red);
+      return false;
+    }
+
+    return true;
+  }
+
   Future<String> uploadFileWeb(Uint8List bytes, String fileName) async {
     final storageRef = storage.ref().child('evidences/$fileName');
     final metadata = SettableMetadata(contentType: _getMimeType(fileName));
@@ -148,6 +183,9 @@ class CreateRequestState extends State<CreateRequest> {
       selectedBytes = null;
       selectedFileName = null;
       selectedDate = null;
+      selectedSubject = null;
+      fileNames.clear();
+      fileBytes.clear();
     });
   }
 
@@ -169,7 +207,7 @@ class CreateRequestState extends State<CreateRequest> {
                 children: [
                   ComboBox(
                     itemsList: subjects,
-                    hintText: 'materia',
+                    hintText: 'Materia',
                     icon: const Icon(
                       Icons.auto_stories_outlined,
                       color: mainColor,
@@ -194,8 +232,11 @@ class CreateRequestState extends State<CreateRequest> {
                     onPressed: selectFile,
                     child: const Text('Adjuntar Evidencia'),
                   ),
-                  if (selectedFileName != null)
-                    Text('Archivo seleccionado: $selectedFileName'),
+                  if (fileNames.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text('Archivos seleccionados: ${fileNames.join(", ")}'),
+                    ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: addRequest,
@@ -209,35 +250,5 @@ class CreateRequestState extends State<CreateRequest> {
       ),
     );
   }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required Icon icon,
-    List<TextInputFormatter>? inputFormatter,
-    TextInputType? keyboardType,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatter,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(fontSize: 18),
-        prefixIcon: icon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF950A67)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF950A67)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF950A67)),
-        ),
-      ),
-    );
-  }
 }
+
