@@ -3,6 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'components/main_color.dart';
 
+// Paquetes que intente usar para el envio del correo
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+import 'package:mailto/mailto.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 class PermisosScreen extends StatelessWidget {
   final permisosRef = FirebaseFirestore.instance.collection('request');
 
@@ -74,7 +80,7 @@ class PermisosScreen extends StatelessWidget {
                     itemCount: permisos.length,
                     itemBuilder: (context, index) {
                       final permiso = permisos[index];
-                      final nombrePermiso = permiso['name'] ?? 'Sin nombre';
+                      final nombrePermiso = permiso['reason'] ?? 'Sin nombre'; //volver a cambiar a name 
                       final estadoPermiso = permiso['estado'] ?? 'Sin estado';
                       final permisoId = permiso.id;
                       final List<dynamic> evidenciaUrls =
@@ -143,28 +149,28 @@ class PermisosScreen extends StatelessWidget {
                               child: Row(
                                 children: [
                                   ElevatedButton(
-                                    onPressed: () {
-                                      _actualizarEstado(
-                                          context, permisoId, 'Aprobado');
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
+                                  onPressed: () {
+                                    _actualizarEstado(context, permisoId, 'Aprobado');
+                                    enviarCorreo(); // Llama al método del correo
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const Text(
-                                      'Aceptar',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                      ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
                                     ),
                                   ),
+                                  child: const Text(
+                                    'Aceptar',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
                                   const SizedBox(width: 10),
                                   ElevatedButton(
                                     onPressed: () {
@@ -344,6 +350,27 @@ class PermisosScreen extends StatelessWidget {
       ),
     );
   }
+
+  // Método sin corregir para enviar correo
+  Future<void> enviarCorreo() async {
+    print('Iniciando envío de correo...');
+    try {
+      final smtpServer = gmail('ejemplo@gmail.com', 'contraseña');
+      final message = Message()
+        ..from = Address('correoemisor@gmail.com', 'nombrecorreo')
+        ..recipients.add('correorecpetor@est.univalle.edu')
+        ..subject = 'Formulario de Licencia'
+        ..text = 'Distinguido(a) Ing.\n\nAdjuntamos Formulario de Licencia para x materia, por x motivo.\n\nSaludos cordiales.';
+
+      final sendReport = await send(message, smtpServer);
+      print('Correo enviado exitosamente: ${sendReport.toString()}');
+    } catch (e) {
+      print('Error durante el envío de correo: $e');
+    } finally {
+      print('Finalizó el proceso de envío.');
+    }
+  }
+
 
   Color getColor(String estado) {
     switch (estado) {
