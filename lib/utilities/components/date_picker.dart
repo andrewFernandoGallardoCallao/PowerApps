@@ -27,7 +27,7 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF950A67), // Color principal
+              primary: Color(0xFF8F0B45), // Color principal
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -77,7 +77,7 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
         ),
         prefixIcon: const Icon(
           Icons.calendar_month,
-          color: Color(0xFF950A67), // Color del icono
+          color: Color(0xFF8F0B45), // Color del icono
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -88,14 +88,14 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Color(0xFF950A67), 
+            color: Color(0xFF8F0B45), 
             width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Color(0xFF950A67), 
+            color: Color(0xFF8F0B45), 
             width: 1,
           ),
         ),

@@ -45,14 +45,14 @@ class _ComboBoxState extends State<ComboBox> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Color(0xFF950A67),
+            color: Color(0xFF8F0B45),
             width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Color(0xFF950A67),
+            color: Color(0xFF8F0B45),
             width: 1,
           ),
         ),

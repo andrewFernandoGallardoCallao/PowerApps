@@ -58,7 +58,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
         return ListView(
           children: [
             Padding(
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

@@ -10,6 +10,7 @@ class TextFormFieldModel extends StatefulWidget {
   final List<TextInputFormatter> inputFormatter;
   final String? Function(String?)? validator;
   final bool isPasswordField;
+  
   // Constructor corregido con parámetros nombrados requeridos
   const TextFormFieldModel({
     super.key,
@@ -51,9 +52,9 @@ class _TextFormFieldModelState extends State<TextFormFieldModel> {
       style: const TextStyle(
         fontFamily: 'Urbanist',
         fontSize: 18,
-        color: Colors.black87,
+        color: Color.fromRGBO(66, 66, 66, 1),
       ),
-      cursorColor: Colors.black,
+      cursorColor: Colors.grey[800],
       textInputAction: TextInputAction.next,
       validator: widget.validator,
     );
