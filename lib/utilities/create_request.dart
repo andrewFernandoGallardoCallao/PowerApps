@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:power_apps_flutter/models/student.dart';
 import 'package:power_apps_flutter/utilities/components/combo_box.dart';
 import 'package:power_apps_flutter/utilities/components/date_picker.dart';
@@ -161,14 +162,12 @@ class CreateRequestState extends State<CreateRequest> {
     return await storageRef.getDownloadURL();
   }
 
-  /// Subida del archivo en Móvil/Escritorio.
   Future<String> uploadFileMobile(String fileName) async {
     final storageRef = storage.ref().child('evidences/$fileName');
     await storageRef.putFile(selectedFile!);
     return await storageRef.getDownloadURL();
   }
 
-  /// Obtener el tipo MIME del archivo.
   String _getMimeType(String fileName) {
     if (fileName.endsWith('.docx')) {
       return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -183,7 +182,6 @@ class CreateRequestState extends State<CreateRequest> {
     }
   }
 
-  /// Limpiar los campos después de enviar la solicitud.
   void clearFields() {
     setState(() {
       selectedFile = null;
@@ -416,6 +414,37 @@ class CreateRequestState extends State<CreateRequest> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required Icon icon,
+    List<TextInputFormatter>? inputFormatter,
+    TextInputType? keyboardType,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatter,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 18),
+        prefixIcon: icon,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF950A67)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF950A67)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF950A67)),
         ),
       ),
     );

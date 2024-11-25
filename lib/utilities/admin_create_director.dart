@@ -14,7 +14,7 @@ class CreateDirector extends StatefulWidget {
 }
 
 class _CreateDirectorState extends State<CreateDirector> {
-  TextEditingController nameController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   final List<String> careers = [
     'Ing. Sistemas',
     'Ing. Industrial',
@@ -55,7 +55,7 @@ class _CreateDirectorState extends State<CreateDirector> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Por favor, complete todos los campos'),
         ),
       );
@@ -65,21 +65,22 @@ class _CreateDirectorState extends State<CreateDirector> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
             size: 30,
+            color: Colors.white,
           ),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
         title: const Text(
           'Registrar Director',
-          style: TextStyle(fontSize: 30),
+          style: TextStyle(fontSize: 30, color: Colors.white),
         ),
-        backgroundColor: mainColor,
+        backgroundColor: const Color(0xFF950A67),
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
@@ -92,11 +93,28 @@ class _CreateDirectorState extends State<CreateDirector> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // TextFormFieldModel(
-                  //   controller: nameController,
-                  //   textAttribute: 'Nombre',
-                  // ),
+                  // Campo de Nombre
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nombre',
+                      prefixIcon: const Icon(
+                        Icons.person,
+                        color: mainColor,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: mainColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: mainColor),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 20),
+
+                  // ComboBox para seleccionar carrera
                   ComboBox(
                     itemsList: careers,
                     hintText: 'Carrera',
@@ -112,11 +130,12 @@ class _CreateDirectorState extends State<CreateDirector> {
                     },
                   ),
                   const SizedBox(height: 20),
+
+                  // Botón de registro
                   ElevatedButton(
-                    onPressed:
-                        registerDirector, // Llamada al método de registro
+                    onPressed: registerDirector,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: mainColor,
+                      backgroundColor: const Color(0xFF950A67),
                       foregroundColor: Colors.white,
                       elevation: 5,
                       shadowColor: Colors.grey.withOpacity(0.3),

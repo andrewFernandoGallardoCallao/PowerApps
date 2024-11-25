@@ -25,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -35,8 +36,9 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final Size sizeScreen = MediaQuery.sizeOf(context);
+
     return Scaffold(
-      backgroundColor: mainColor,
+      backgroundColor: null,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 0.0),
         child: SingleChildScrollView(
@@ -44,10 +46,22 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                const SizedBox(height: 50), 
                 Image.asset(
-                  'lib/assets/img/logoUnivalle.png',
-                  height: sizeScreen.height / 3,
+                  'lib/assets/img/escudoUni.png',
+                  height: sizeScreen.height / 4, 
                 ),
+                const SizedBox(height: 20), 
+                const Text(
+                  "Iniciar Sesión",
+                  style: TextStyle(
+                    fontFamily: 'Urbanist',
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: mainColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 Form(
                   key: _formKey,
                   child: Card(
@@ -61,16 +75,6 @@ class _LoginPageState extends State<LoginPage> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          const Text(
-                            "Iniciar Sesión",
-                            style: TextStyle(
-                              fontFamily: 'Urbanist',
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: mainColor,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
                           TextFormFieldModel(
                             controller: _emailController,
                             textAttribute: 'su email',
@@ -90,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                           TextFormFieldModel(
                             isPasswordField: true,
                             controller: _passwordController,
-                            textAttribute: 'su Contraseña',
+                            textAttribute: 'su contraseña',
                             icon: const Icon(
                               Icons.lock,
                               color: mainColor,
@@ -98,13 +102,13 @@ class _LoginPageState extends State<LoginPage> {
                             inputFormatter: const [],
                             validator: (String? value) {
                               if (value == null || value.isEmpty) {
-                                return 'Porfavor ingrese su contraseña';
+                                return 'Por favor ingrese su contraseña';
                               }
                               return null;
                             },
                           ),
                           const SizedBox(height: 20),
-                          Column(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               ElevatedButton(
@@ -379,27 +383,4 @@ Future<UserCredential?> login(String email, String password) async {
     print('Error general: $e');
   }
   return null;
-}
-
-// Función con student en Firestore
-Future<DocumentSnapshot?> loginWithFirestore(
-    String email, String password) async {
-  try {
-    QuerySnapshot studentSnapshot = await FirebaseFirestore.instance
-        .collection('student')
-        .where('mail', isEqualTo: email)
-        .where('password',
-            isEqualTo: password) // Verificación directa (cambiar?)
-        .get();
-
-    if (studentSnapshot.docs.isNotEmpty) {
-      // Devuelve el primer documento que coincide
-      return studentSnapshot.docs.first;
-    } else {
-      return null; // Usuario no encontrado
-    }
-  } catch (e) {
-    print('Error al autenticar con Firestore: $e');
-    return null;
-  }
 }

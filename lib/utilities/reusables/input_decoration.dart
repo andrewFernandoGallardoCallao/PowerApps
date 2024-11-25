@@ -20,14 +20,14 @@ InputDecoration inputDecorationForm(String textAttribute, Icon icon,
         ? IconButton(
             icon: Icon(
               isPassword ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey[600],
+              color: Colors.grey[800],
               size: 20,
             ),
             onPressed: toggleVisibility,
           )
         : null,
     filled: true,
-    fillColor: Colors.grey[300],
+    fillColor: Colors.grey[200],
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide.none,
@@ -35,15 +35,15 @@ InputDecoration inputDecorationForm(String textAttribute, Icon icon,
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(
-        color: Colors.black,
-        width: 1.5,
+        color: Color(0xFF8F0B45),
+        width: 1,
       ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(
-        color: Colors.grey,
-        width: 2,
+        color: Color(0xFF6D8586),
+        width: 1.5,
       ),
     ),
   );

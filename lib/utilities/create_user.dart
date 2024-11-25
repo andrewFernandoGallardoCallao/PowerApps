@@ -10,6 +10,7 @@ import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/components/snack_bar.dart';
 import 'package:power_apps_flutter/utilities/components/text_form_field_model.dart';
+import 'package:power_apps_flutter/utilities/components/combo_box.dart';
 
 class CreateUserPage extends StatefulWidget {
   const CreateUserPage({super.key});
@@ -62,13 +63,13 @@ class _CreateUserState extends State<CreateUserPage> {
         child: Center(
           child: Column(
             children: [
-              Image.asset(
-                'lib/assets/img/logoUnivalle.png',
-                height: sizeScreen.height / 3,
-              ),
-              const SizedBox(height: 10),
+             const SizedBox(height: 50), 
+                Image.asset(
+                  'lib/assets/img/escudoUni.png',
+                  height: sizeScreen.height / 4, 
+                ),
               Card(
-                margin: const EdgeInsets.all(30),
+                margin: const EdgeInsets.all(20),
                 elevation: 8,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -79,7 +80,7 @@ class _CreateUserState extends State<CreateUserPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
-                        "Registrarse",
+                        "Registro Estudiante",
                         style: TextStyle(
                           fontFamily: 'Urbanist',
                           fontSize: 24,
@@ -192,12 +193,12 @@ class _CreateUserState extends State<CreateUserPage> {
           TextFormFieldModel(
             controller: _nameController,
             keyboardType: TextInputType.name,
-            textAttribute: 'su Nombre',
+            textAttribute: 'su nombre',
             icon: const Icon(Icons.text_fields, color: mainColor),
             inputFormatter: const [],
             validator: (String? value) {
               if (value == null || value.isEmpty) {
-                return 'Porfavor ingrese su Nombre';
+                return 'Por favor ingrese su nombre';
               }
               return null;
             },
@@ -211,7 +212,7 @@ class _CreateUserState extends State<CreateUserPage> {
             inputFormatter: const [],
             validator: (String? value) {
               if (value == null || value.isEmpty) {
-                return 'Porfavor ingrese su celular';
+                return 'Por favor ingrese su celular';
               }
               return null;
             },
@@ -220,12 +221,12 @@ class _CreateUserState extends State<CreateUserPage> {
           TextFormFieldModel(
             controller: _cellPhonelController,
             keyboardType: TextInputType.phone,
-            textAttribute: 'su Celular',
+            textAttribute: 'su celular',
             icon: const Icon(Icons.phone_android, color: mainColor),
             inputFormatter: [FilteringTextInputFormatter.digitsOnly],
             validator: (String? value) {
               if (value == null || value.isEmpty) {
-                return 'Porfavor ingrese su celular';
+                return 'Por favor ingrese su celular';
               }
               return null;
             },
@@ -233,7 +234,7 @@ class _CreateUserState extends State<CreateUserPage> {
           const SizedBox(height: 12),
           TextFormFieldModel(
             controller: _phoneController,
-            textAttribute: 'su Telefono',
+            textAttribute: 'su teléfono',
             icon: const Icon(Icons.phone, color: mainColor),
             inputFormatter: [FilteringTextInputFormatter.singleLineFormatter],
             validator: (String? value) {
@@ -246,7 +247,9 @@ class _CreateUserState extends State<CreateUserPage> {
           const SizedBox(height: 12),
           ComboBox(
             itemsList: const [
+              'Arquitectura',
               'Ing. Sistemas',
+              'Ing. Civil',
             ],
             hintText: 'carrera',
             icon: const Icon(
@@ -287,7 +290,7 @@ class _CreateUserState extends State<CreateUserPage> {
   Widget buildPassword() {
     return TextFormFieldModel(
       controller: _passwordController,
-      textAttribute: 'su Contraseña',
+      textAttribute: 'su contraseña',
       icon: const Icon(
         Icons.lock,
         color: mainColor,

@@ -39,18 +39,24 @@ class _ComboBoxState extends State<ComboBox> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         prefixIcon: widget.icon,
         filled: true,
-        fillColor: Colors.grey[300],
+        fillColor: Colors.grey[200],
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+          borderSide: const BorderSide(
+            color: Color(0xFF8F0B45),
+            width: 1,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.grey, width: 2),
+          borderSide: const BorderSide(
+            color: Color(0xFF8F0B45),
+            width: 1,
+          ),
         ),
       ),
       style: const TextStyle(
@@ -62,7 +68,10 @@ class _ComboBoxState extends State<ComboBox> {
       items: widget.itemsList.map((String item) {
         return DropdownMenuItem<String>(
           value: item,
-          child: Text(item),
+          child: Text(
+            item,
+            style: TextStyle(color: Colors.grey[800]),
+          ),
         );
       }).toList(),
       onChanged: (String? newValue) {
