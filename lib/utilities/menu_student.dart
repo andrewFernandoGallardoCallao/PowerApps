@@ -300,14 +300,6 @@ class StudentMainMenuState extends State<StudentMainMenu> {
             icon: Icon(Icons.add_circle_outline),
             label: 'Crear Solicitud',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Historial',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
         ],
       ),
     );
