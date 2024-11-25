@@ -28,8 +28,8 @@ class _CreateUserState extends State<CreateUserPage> {
   final TextEditingController _ciController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _cellPhonelController = TextEditingController();
-  final TextEditingController _apellidosController = TextEditingController();
   String? _selectedCareer;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -42,6 +42,21 @@ class _CreateUserState extends State<CreateUserPage> {
   Widget build(BuildContext context) {
     final sizeScreen = MediaQuery.sizeOf(context);
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0, // Sin sombra
+        backgroundColor: Colors.transparent, // Fondo transparente
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context); // Navegar hacia atrás
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+            size: 50,
+          ),
+        ),
+        toolbarHeight: 50, // Ajusta la altura del AppBar si lo necesitas
+      ),
       backgroundColor: mainColor,
       body: SingleChildScrollView(
         child: Center(
@@ -75,7 +90,85 @@ class _CreateUserState extends State<CreateUserPage> {
                       const SizedBox(height: 16),
                       formulario(),
                       const SizedBox(height: 20),
-                      btnSignUp(sizeScreen),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: mainColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: sizeScreen.width * 0.2,
+                            vertical: 20,
+                          ),
+                        ),
+                        onPressed:
+                            _isLoading // Desactivar el botón mientras se realiza el registro
+                                ? null
+                                : () async {
+                                    if (_formKey.currentState?.validate() ??
+                                        false) {
+                                      setState(() {
+                                        _isLoading =
+                                            true; // Inicia el proceso de carga
+                                      });
+
+                                      String email = _emailController.text;
+                                      String password =
+                                          _passwordController.text;
+                                      String name = _nameController.text;
+
+                                      if (email.isNotEmpty &&
+                                          password.isNotEmpty &&
+                                          _selectedCareer != null) {
+                                        try {
+                                          UserCredential? credenciales =
+                                              await createU(
+                                            StudentDto(
+                                              name: name,
+                                              password: password,
+                                              email: email,
+                                              career: _selectedCareer,
+                                            ),
+                                            context,
+                                          );
+
+                                          if (credenciales != null) {
+                                            if (credenciales.user != null) {
+                                              await credenciales.user!
+                                                  .sendEmailVerification();
+                                              Navigator.of(context).pop();
+                                            }
+                                          }
+                                        } catch (e) {
+                                          // Manejo de errores
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(
+                                                    'Error al crear cuenta: $e')),
+                                          );
+                                        } finally {
+                                          setState(() {
+                                            _isLoading =
+                                                false; // Termina el proceso de carga
+                                          });
+                                        }
+                                      }
+                                    }
+                                  },
+                        child:
+                            _isLoading // Muestra un indicador de carga si está en proceso
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white)
+                                : const Text(
+                                    ' Registrarse  ',
+                                    style: TextStyle(
+                                      fontFamily: 'Urbanist',
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                      )
                     ],
                   ),
                 ),
@@ -205,11 +298,11 @@ class _CreateUserState extends State<CreateUserPage> {
           return 'Por favor ingrese una contraseña';
         }
         // Verificación de contraseña segura
-        final passwordRegExp =
-            RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$');
-        if (!passwordRegExp.hasMatch(value)) {
-          return 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial';
-        }
+        // final passwordRegExp =
+        //     RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$');
+        // if (!passwordRegExp.hasMatch(value)) {
+        //   return 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial';
+        // }
         return null;
       },
     );
@@ -253,48 +346,6 @@ class _CreateUserState extends State<CreateUserPage> {
           borderSide: BorderSide(color: Color(0xFF6D8586)),
         ),
       ),
-    );
-  }
-
-  Widget btnSignUp(Size sizeScreen) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: mainColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5),
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: sizeScreen.width * 0.2,
-          vertical: 20,
-        ),
-      ),
-      onPressed: () async {
-        if (_formKey.currentState?.validate() ?? false) {
-          String email = _emailController.text;
-          String password = _passwordController.text;
-          String name = _nameController.text;
-          if (email.isNotEmpty &&
-              password.isNotEmpty &&
-              _selectedCareer != null) {
-            UserCredential? credenciales = await createU(
-              StudentDto(
-                name: name,
-                password: password,
-                email: email,
-                career: _selectedCareer,
-              ),
-              context,
-            );
-            if (credenciales != null) {
-              if (credenciales.user != null) {
-                await credenciales.user!.sendEmailVerification();
-                Navigator.of(context).pop();
-              }
-            }
-          }
-        }
-      },
-      child: Text("Registrarse", style: TextStyle(color: Colors.white)),
     );
   }
 }
@@ -347,7 +398,7 @@ Future<UserCredential?> createU(
     }
 
     // Mostrar error en la interfaz con SnackBar
-    showAnimatedSnackBar(context, '$e', Colors.red);
+    showAnimatedSnackBar(context, '$e', Colors.red, Icons.error);
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error general: $e')),

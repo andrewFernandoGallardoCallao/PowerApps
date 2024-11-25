@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,6 +9,7 @@ import 'package:power_apps_flutter/utilities/components/combo_box.dart';
 import 'package:power_apps_flutter/utilities/components/date_picker.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/components/snack_bar.dart';
+import 'package:power_apps_flutter/utilities/components/text_form_field_model.dart';
 import 'package:power_apps_flutter/utilities/components/toast.dart';
 
 class CreateRequest extends StatefulWidget {
@@ -28,7 +27,8 @@ class CreateRequest extends StatefulWidget {
 class CreateRequestState extends State<CreateRequest> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;
-
+  final TextEditingController _reasonController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   String? selectedFileName;
   File? selectedFile;
   Uint8List? selectedBytes;
@@ -38,13 +38,38 @@ class CreateRequestState extends State<CreateRequest> {
   List<String> fileUrls = [];
   List<Uint8List> fileBytes = [];
 
-  List<String> subjects = [
-    'Programacion 1',
-    'Programación Web I',
-    'SQA',
-    'Base de Datos I'
-  ];
+  List<String> subjects = [];
   String? selectedSubject;
+
+  /// Cargar las materias desde Firestore.
+  Future<void> loadSubjects() async {
+    try {
+      QuerySnapshot querySnapshot = await firestore.collection('docente').get();
+      List<String> subjectList = [];
+
+      for (var doc in querySnapshot.docs) {
+        // Verificar si el campo 'materias' es un array
+        List<dynamic> materias = doc['materias'] ??
+            []; // Usar un valor predeterminado vacío si no existe
+        for (var materia in materias) {
+          // Añadir cada materia del array a la lista
+          subjectList.add(materia);
+        }
+      }
+
+      setState(() {
+        subjects = subjectList; // Actualizar la lista de materias en la UI
+      });
+    } catch (e) {
+      Toast.show(context, 'Error al cargar las materias: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadSubjects(); // Cargar las materias al iniciar la pantalla
+  }
 
   /// Selección del archivo.
   Future<void> selectFile() async {
@@ -56,22 +81,24 @@ class CreateRequestState extends State<CreateRequest> {
       );
 
       if (result != null && result.files.isNotEmpty) {
-        for (var file in result.files) {
-          if (kIsWeb) {
-            // En Web, guardamos los bytes y el nombre del archivo.
-            fileBytes.add(file.bytes!);
-            fileNames.add(file.name);
-          } else {
-            // En Móvil/Escritorio, obtenemos la ruta y el nombre.
-            final path = file.path;
-            if (path != null) {
-              setState(() {
-                selectedFile = File(path);
-                fileNames.add(file.name);
-              });
+        setState(() {
+          for (var file in result.files) {
+            if (kIsWeb) {
+              // En Web, guardamos los bytes y el nombre del archivo.
+              fileBytes.add(file.bytes!);
+              fileNames.add(file.name);
+            } else {
+              // En Móvil/Escritorio, obtenemos la ruta y el nombre.
+              final path = file.path;
+              if (path != null) {
+                setState(() {
+                  selectedFile = File(path);
+                  fileNames.add(file.name);
+                });
+              }
             }
           }
-        }
+        });
         print('Archivos seleccionados: $fileNames');
       } else {
         print('No se seleccionaron archivos.');
@@ -108,11 +135,18 @@ class CreateRequestState extends State<CreateRequest> {
         'evidence_urls': fileUrls, // Guardar la lista de URLs
         'evidence_names': fileNames, // Guardar la lista de nombres
         'estado': 'Pendiente',
+        'reason': _reasonController.text,
         'fecha': selectedDate?.toIso8601String() ?? 'Fecha no seleccionada',
         'userReference': reference
       });
 
-      showAnimatedSnackBar(context, 'Solicitud Creada', Colors.green);
+      // ignore: use_build_context_synchronously
+      showAnimatedSnackBar(
+        context,
+        'Solicitud Creada',
+        Colors.green,
+        Icons.check,
+      );
       clearFields();
     } catch (e) {
       print("Error al enviar solicitud: $e");
@@ -161,55 +195,224 @@ class CreateRequestState extends State<CreateRequest> {
 
   @override
   Widget build(BuildContext context) {
+    final Size sizeScreen = MediaQuery.sizeOf(context);
     return Center(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          elevation: 40,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ComboBox(
-                    itemsList: subjects,
-                    hintText: 'materia',
-                    icon: const Icon(
-                      Icons.auto_stories_outlined,
-                      color: mainColor,
+      child: Form(
+        key: _formKey,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            elevation: 40,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormFieldModel(
+                      controller: _reasonController,
+                      textAttribute: 'la razon de la solicitud',
+                      icon: const Icon(
+                        Icons.text_snippet_outlined,
+                        color: mainColor,
+                      ),
+                      inputFormatter: const [],
+                      validator: (String? value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Ingrese la razon';
+                        }
+                        if (value.length > 51) {
+                          return 'Maximo cantidad de caracteres 50';
+                        }
+                        return null;
+                      },
                     ),
-                    selectedValue: selectedSubject,
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedSubject = newValue;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  SimpleDatePickerFormField(
-                    onDateSelected: (DateTime? date) {
-                      setState(() {
-                        selectedDate = date;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: selectFile,
-                    child: const Text('Adjuntar Evidencia'),
-                  ),
-                  if (selectedFileName != null)
-                    Text('Archivo seleccionado: $selectedFileName'),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: addRequest,
-                    child: const Text('Enviar Solicitud'),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    ComboBox(
+                      itemsList: subjects,
+                      hintText: 'Materia',
+                      icon: const Icon(
+                        Icons.auto_stories_outlined,
+                        color: mainColor,
+                      ),
+                      selectedValue: selectedSubject,
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedSubject = newValue;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    SimpleDatePickerFormField(
+                      onDateSelected: (DateTime? date) {
+                        setState(() {
+                          selectedDate = date;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (fileNames.isNotEmpty) ...[
+                          const Text(
+                            'Archivos Seleccionados:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: fileNames.length,
+                            itemBuilder: (context, index) {
+                              final fileName = fileNames[index];
+                              final fileType =
+                                  fileName.split('.').last.toLowerCase();
+
+                              // Verificar si es una imagen
+                              if (['png', 'jpg', 'jpeg'].contains(fileType)) {
+                                // Archivos de imagen
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.image,
+                                          color: mainColor,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            fileName,
+                                            style:
+                                                const TextStyle(fontSize: 16),
+                                            overflow: TextOverflow
+                                                .ellipsis, // Si el nombre es muy largo, se trunca
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.close,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            setState(() {
+                                              fileNames.removeAt(index);
+                                              if (kIsWeb) {
+                                                fileBytes.removeAt(index);
+                                              } else {
+                                                selectedFile =
+                                                    null; // O eliminar de una lista si guardas múltiples archivos
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    const Divider(), // Línea separadora opcional
+                                  ],
+                                );
+                              } else {
+                                // Archivos no imagen (PDF, DOCX)
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 5.0),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.insert_drive_file,
+                                          color: mainColor),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          fileName,
+                                          style: const TextStyle(fontSize: 16),
+                                          overflow: TextOverflow
+                                              .ellipsis, // Trunca nombres largos
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close,
+                                            color: Colors.red),
+                                        onPressed: () {
+                                          setState(() {
+                                            fileNames.removeAt(index);
+                                            fileUrls.removeAt(index);
+                                            if (kIsWeb) {
+                                              fileBytes.removeAt(index);
+                                            } else {
+                                              selectedFile =
+                                                  null; // O eliminar de una lista si guardas múltiples archivos
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ]
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: selectFile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: mainColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: sizeScreen.width * 0.2,
+                          vertical: 20,
+                        ),
+                      ),
+                      child: const Text(
+                        'Adjuntar Evidencia',
+                        style: TextStyle(
+                          fontFamily: 'Urbanist',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          addRequest();
+                        } else {
+                          print('Formulario no válido');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: mainColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: sizeScreen.width * 0.2,
+                          vertical: 20,
+                        ),
+                      ),
+                      child: const Text(
+                        'Enviar Solicitud',
+                        style: TextStyle(
+                          fontFamily: 'Urbanist',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),

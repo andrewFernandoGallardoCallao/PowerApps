@@ -4,7 +4,7 @@ class AnimatedSnackBar extends StatefulWidget {
   final String message;
 
   const AnimatedSnackBar({Key? key, required this.message}) : super(key: key);
-  
+
   @override
   AnimatedSnackBarState createState() => AnimatedSnackBarState();
 }
@@ -66,13 +66,14 @@ class AnimatedSnackBarState extends State<AnimatedSnackBar>
   }
 }
 
-void showAnimatedSnackBar(BuildContext context, String message, Color colorMessage) {
+void showAnimatedSnackBar(
+    BuildContext context, String message, Color colorMessage, IconData icon) {
   final snackBar = SnackBar(
-    duration: const Duration(seconds: 2),
+    duration: const Duration(seconds: 4),
     content: Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const Icon(Icons.check, color: Colors.white),
+        Icon(icon, color: Colors.white),
         const SizedBox(width: 8),
         Text(
           message,

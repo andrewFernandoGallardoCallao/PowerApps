@@ -25,9 +25,17 @@ class _ComboBoxState extends State<ComboBox> {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
-        labelStyle: TextStyle(fontSize: 18, color: Colors.grey[600]),
+        labelStyle: const TextStyle(
+          fontFamily: 'Urbanist',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
         hintText: 'Seleccione la ${widget.hintText}',
-        hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
+        hintStyle: const TextStyle(
+          fontFamily: 'Urbanist',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         prefixIcon: widget.icon,
         filled: true,
@@ -45,7 +53,11 @@ class _ComboBoxState extends State<ComboBox> {
           borderSide: const BorderSide(color: Colors.grey, width: 2),
         ),
       ),
-      style: const TextStyle(fontSize: 18, color: Colors.black87),
+      style: const TextStyle(
+        fontFamily: 'Urbanist',
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
       value: widget.selectedValue,
       items: widget.itemsList.map((String item) {
         return DropdownMenuItem<String>(

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:power_apps_flutter/models/student.dart';
@@ -55,6 +56,26 @@ class StudentMainMenuState extends State<StudentMainMenu> {
     return StreamBuilder<QuerySnapshot>(
       stream: _getUserRequests(),
       builder: (context, snapshot) {
+        // Manejo de estados del snapshot
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text('Ocurrió un error al cargar las solicitudes.'),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text('No tienes solicitudes registradas.'),
+          );
+        }
+
+        // Construimos la lista con los datos del snapshot
         return ListView(
           children: [
             Padding(
@@ -80,73 +101,83 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                 ],
               ),
             ),
-            Expanded(
-              child: _getRequest(snapshot),
-            ),
+            // Construye las tarjetas
+            ..._getRequest(snapshot), // Uso del operador "spread"
           ],
         );
       },
     );
   }
 
-  ListView _getRequest(AsyncSnapshot<QuerySnapshot<Object?>> snapshot) {
-    return ListView(
-      shrinkWrap: true,
-      padding: const EdgeInsets.all(10),
-      children: snapshot.data!.docs.map((doc) {
-        Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
+  List<Widget> _getRequest(AsyncSnapshot<QuerySnapshot<Object?>> snapshot) {
+    return snapshot.data!.docs.map((doc) {
+      // Validación para evitar datos nulos
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) {
+        return const SizedBox(); // Retorna un widget vacío si no hay datos
+      }
 
-        return Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: 10,
-          margin: const EdgeInsets.only(bottom: 10),
-          child: Padding(
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  "Fecha: ${_formatDate(data['fecha'])}",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
+      return Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        elevation: 10,
+        margin: const EdgeInsets.only(bottom: 10),
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    "Razón: ",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                // Text(
-                //   "Teléfono: ${data['phone']}",
-                //   style: TextStyle(
-                //     fontSize: 14,
-                //     color: Colors.grey[600],
-                //   ),
-                // ),
-                Row(
-                  children: [
-                    Text(
-                      "Estado: ",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                  Text(
+                    "${data['reason'] ?? 'Sin razón'}", // Manejo de campos nulos
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
                     ),
-                    Text(
-                      "${data['estado']}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: getColor(data['estado']),
-                      ),
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Fecha: ${_formatDate(data['fecha'] ?? '')}",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    "Estado: ",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Text(
+                    "${data['estado'] ?? 'Desconocido'}",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: getColor(data['estado'] ?? ''),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      }).toList(),
-    );
+        ),
+      );
+    }).toList();
   }
 
   String _formatDate(String isoDate) {
@@ -238,6 +269,12 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                       ),
                     ],
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.exit_to_app, color: Colors.white),
+                    onPressed: () {
+                      _signOut();
+                    },
+                  ),
                 ],
               ),
             ],
@@ -274,5 +311,17 @@ class StudentMainMenuState extends State<StudentMainMenu> {
         ],
       ),
     );
+  }
+
+  void _signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(
+          context, '/Login'); // Redirige a la pantalla de login
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión: $e')),
+      );
+    }
   }
 }

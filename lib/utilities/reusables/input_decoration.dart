@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 InputDecoration inputDecorationForm(String textAttribute, Icon icon,
     {bool? isPassword, VoidCallback? toggleVisibility}) {
   return InputDecoration(
-    labelStyle: TextStyle(
+    labelStyle: const TextStyle(
+      fontFamily: 'Urbanist',
       fontSize: 18,
-      color: Colors.grey[600],
+      fontWeight: FontWeight.bold,
     ),
     hintText: 'Ingrese $textAttribute',
     hintStyle: TextStyle(
+      fontFamily: 'Urbanist',
       fontSize: 18,
-      color: Colors.grey[400],
+      color: Colors.grey[600],
     ),
     floatingLabelBehavior: FloatingLabelBehavior.always,
     prefixIcon: icon,

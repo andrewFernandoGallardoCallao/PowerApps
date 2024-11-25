@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:power_apps_flutter/firebase_options.dart';
+import 'package:power_apps_flutter/models/director.dart';
 import 'package:power_apps_flutter/models/student.dart';
 import 'package:power_apps_flutter/utilities/admin_create_director.dart';
+import 'package:power_apps_flutter/utilities/components/menu_director.dart';
 import 'package:power_apps_flutter/utilities/list_request_director.dart';
 import 'package:power_apps_flutter/utilities/login_page.dart';
 import 'package:power_apps_flutter/utilities/menu_student.dart';
@@ -30,16 +32,26 @@ class MyApp extends StatelessWidget {
         '/Login': (context) => const LoginPage(),
         '/CreateDirector': (context) => const CreateDirector(),
         '/PermisionScreen': (context) => PermisosScreen(),
-        '/MenuStudent': (context) => StudentMainMenu(
-              student: Student(
-                id: 'ZQSnrNOqEQXe6Ma1NAi6sKOj00i2',
-                career: 'Ing. Sistemas',
-                mail: 'gca5001500@est.univalle.edu',
-                name: 'Andrew',
-                password: '123',
-                type: 'Student',
-              ),
-            )
+        // '/MenuDirector': (context) => DirectorMainMenu(
+        //       director: Director(
+        //         id: '2MiymTliZ8OSbzxkOxmyZhx5B4D3',
+        //         name: "Joaquin Justiniano",
+        //         career: 'ISI',
+        //         password: 'AnDrEw12345%',
+        //         mail: 'andrewgallardo777@gmail.com',
+        //         type: 'director',
+        //       ),
+        //     ),
+        // '/MenuStudent': (context) => StudentMainMenu(
+        //       student: Student(
+        //         id: 'ZQSnrNOqEQXe6Ma1NAi6sKOj00i2',
+        //         career: 'Ing. Sistemas',
+        //         mail: 'gca5001500@est.univalle.edu',
+        //         name: 'Andrew',
+        //         password: '123',
+        //         type: 'Student',
+        //       ),
+        //     )
       },
     );
   }

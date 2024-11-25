@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:power_apps_flutter/utilities/components/combo_box.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/components/snack_bar.dart';
-import 'package:power_apps_flutter/utilities/components/text_form_field_model.dart';
 
 class CreateDirector extends StatefulWidget {
   const CreateDirector({super.key});
@@ -36,7 +35,12 @@ class _CreateDirectorState extends State<CreateDirector> {
           'name': nameController.text,
           'career': selectedCareer,
         });
-        showAnimatedSnackBar(context, 'Registo Exitoso', Colors.green);
+        showAnimatedSnackBar(
+          context,
+          'Registo Exitoso',
+          Colors.green,
+          Icons.check,
+        );
         // Limpiar los campos después de registrar
         nameController.clear();
         setState(() {

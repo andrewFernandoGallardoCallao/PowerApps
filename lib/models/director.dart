@@ -1,5 +1,4 @@
-
-class Student {
+class Director {
   final String id;
   final String career;
   final String mail;
@@ -7,7 +6,7 @@ class Student {
   final String name;
   final String password;
 
-  Student({
+  Director({
     required this.name,
     required this.password,
     required this.id,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:power_apps_flutter/utilities/components/main_color.dart';
 
 class SimpleDatePickerFormField extends StatefulWidget {
   final ValueChanged<DateTime?> onDateSelected; // Callback para pasar la fecha
@@ -29,7 +30,7 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color.fromRGBO(96, 36, 68, 1),
+              primary: mainColor,
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -71,12 +72,14 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
       decoration: InputDecoration(
         hintText: 'Seleccione Fecha',
         hintStyle: TextStyle(
+          fontFamily: 'Urbanist',
           fontSize: 18,
-          color: Colors.grey[400],
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[600],
         ),
         prefixIcon: const Icon(
           Icons.calendar_month,
-          color: Color.fromRGBO(96, 36, 68, 1),
+          color: mainColor,
         ),
         filled: true,
         fillColor: Colors.grey[300],
