@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
@@ -82,11 +83,14 @@ class _PermisosScreenState extends State<PermisosScreen> {
             itemCount: permisosPendientes.length,
             itemBuilder: (context, index) {
               final permiso = permisosPendientes[index];
+              final permisoId = permiso.id;
               final razonPermiso = permiso['reason'] ?? 'Sin razón';
               final estadoPermiso = permiso['estado'] ?? 'Sin estado';
-              final permisoId = permiso.id;
+              final fechaPermiso = permiso['fecha'];
+
               final List<dynamic> evidenciaUrls = permiso['evidence_urls'];
               final List<dynamic> nombreArchivos = permiso['evidence_names'];
+              final DocumentReference reference = permiso['userReference'];
 
               return Card(
                 elevation: 5,
@@ -95,28 +99,162 @@ class _PermisosScreenState extends State<PermisosScreen> {
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: ExpansionTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        razonPermiso,
-                        style: const TextStyle(
-                          fontFamily: 'Urbanist',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        estadoPermiso,
-                        style: TextStyle(
-                          fontFamily: 'Urbanist',
-                          fontSize: 16,
-                          color: getColor(estadoPermiso),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  title: FutureBuilder<DocumentSnapshot>(
+                    future: reference.get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        // Mostrar un indicador de carga mientras se obtienen los datos
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  razonPermiso,
+                                  style: const TextStyle(
+                                    fontFamily: 'Urbanist',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const CircularProgressIndicator(), // Indicador de carga
+                              ],
+                            ),
+                            Text(
+                              estadoPermiso,
+                              style: TextStyle(
+                                fontFamily: 'Urbanist',
+                                fontSize: 16,
+                                color: getColor(estadoPermiso),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        // Manejo de errores
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  razonPermiso,
+                                  style: const TextStyle(
+                                    fontFamily: 'Urbanist',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  'Error al cargar usuario',
+                                  style: const TextStyle(
+                                    fontFamily: 'Urbanist',
+                                    fontSize: 14,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              estadoPermiso,
+                              style: TextStyle(
+                                fontFamily: 'Urbanist',
+                                fontSize: 16,
+                                color: getColor(estadoPermiso),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      if (!snapshot.hasData || !snapshot.data!.exists) {
+                        // Manejo de caso donde no se encuentra el usuario
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  razonPermiso,
+                                  style: const TextStyle(
+                                    fontFamily: 'Urbanist',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const Text(
+                                  'Usuario no encontrado',
+                                  style: TextStyle(
+                                    fontFamily: 'Urbanist',
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              estadoPermiso,
+                              style: TextStyle(
+                                fontFamily: 'Urbanist',
+                                fontSize: 16,
+                                color: getColor(estadoPermiso),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      // Cuando los datos están disponibles
+                      final userName = snapshot.data!['name'] ?? 'Sin nombre';
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userName,
+                                style: const TextStyle(
+                                  fontFamily: 'Urbanist',
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                razonPermiso,
+                                style: const TextStyle(
+                                  fontFamily: 'Urbanist',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            estadoPermiso,
+                            style: TextStyle(
+                              fontFamily: 'Urbanist',
+                              fontSize: 16,
+                              color: getColor(estadoPermiso),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   children: [
                     ListView.builder(

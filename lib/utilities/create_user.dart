@@ -58,7 +58,6 @@ class _CreateUserState extends State<CreateUserPage> {
         ),
         toolbarHeight: 50, // Ajusta la altura del AppBar si lo necesitas
       ),
-      backgroundColor: mainColor,
       body: SingleChildScrollView(
         child: Center(
           child: Column(
@@ -214,7 +213,7 @@ class _CreateUserState extends State<CreateUserPage> {
             inputFormatter: const [],
             validator: (String? value) {
               if (value == null || value.isEmpty) {
-                return 'Por favor ingrese su celular';
+                return 'Por favor ingrese su CI';
               }
               return null;
             },
@@ -399,7 +398,6 @@ Future<UserCredential?> createU(
         .set({
       'name': student.name,
       'mail': student.email,
-      'password': student.password, // encriptar la contraseña
       'career': student.career,
       'type': 'Student'
     });
@@ -415,8 +413,12 @@ Future<UserCredential?> createU(
       errorMessage = 'Error: ${e.message}';
     }
 
-    // Mostrar error en la interfaz con SnackBar
-    showAnimatedSnackBar(context, '$e', Colors.red, Icons.error);
+    showAnimatedSnackBar(
+      context,
+      errorMessage,
+      Colors.red,
+      Icons.error,
+    );
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error general: $e')),

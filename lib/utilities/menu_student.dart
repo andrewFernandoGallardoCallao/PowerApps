@@ -213,6 +213,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final Size sizeScreen = MediaQuery.sizeOf(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mainColor,
@@ -225,9 +226,9 @@ class StudentMainMenuState extends State<StudentMainMenu> {
             children: [
               Text(
                 _titles[_currentIndex],
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Urbanist',
-                  fontSize: 24,
+                  fontSize: sizeScreen.width * 0.04,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -270,7 +271,11 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.exit_to_app, color: Colors.white),
+                    icon: Icon(
+                      Icons.exit_to_app,
+                      color: Colors.white,
+                      size: sizeScreen.width * 0.04,
+                    ),
                     onPressed: () {
                       _signOut();
                     },

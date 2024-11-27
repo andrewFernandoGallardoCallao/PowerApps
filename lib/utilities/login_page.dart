@@ -108,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                             },
                           ),
                           const SizedBox(height: 20),
-                          Row(
+                          Column(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               ElevatedButton(
@@ -185,9 +185,6 @@ class _LoginPageState extends State<LoginPage> {
                                                             name:
                                                                 userDocStudent[
                                                                     'name'],
-                                                            password:
-                                                                userDocStudent[
-                                                                    'password'],
                                                             mail:
                                                                 userDocStudent[
                                                                     'mail'],

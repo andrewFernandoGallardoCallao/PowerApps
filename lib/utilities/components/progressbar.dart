@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:power_apps_flutter/utilities/components/main_color.dart';
 
-class ProgressDialog {
-  static show(BuildContext context, String message) {
-    AlertDialog alert = AlertDialog(
-      content: Row(
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(width: 20),
-          Text(message),
-        ],
-      ),
-    );
-
-    showDialog(
+class ProgressBar {
+  static void showProgressDialog(
+    BuildContext context,
+    String message,
+  ) async {
+    return showDialog(
       context: context,
-      barrierDismissible:
-          false, // Evita que el usuario cierre el diálogo tocando fuera de él
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return alert;
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(color: mainColor),
+                const SizedBox(width: 20),
+                Text("$message..."),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
 
-  static hide(BuildContext context) {
-    Navigator.of(context).pop(); // Cierra el diálogo de progreso
+  static void closeProgressDialog(BuildContext context) async {
+    Navigator.of(context, rootNavigator: true).pop(); // Cierra el diálogo.
   }
 }
