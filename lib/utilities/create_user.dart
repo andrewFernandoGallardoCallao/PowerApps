@@ -63,11 +63,11 @@ class _CreateUserState extends State<CreateUserPage> {
         child: Center(
           child: Column(
             children: [
-             const SizedBox(height: 50), 
-                Image.asset(
-                  'lib/assets/img/escudoUni.png',
-                  height: sizeScreen.height / 4, 
-                ),
+              const SizedBox(height: 50),
+              Image.asset(
+                'lib/assets/img/escudoUni.png',
+                height: sizeScreen.height / 4,
+              ),
               Card(
                 margin: const EdgeInsets.all(20),
                 elevation: 8,
@@ -195,7 +195,9 @@ class _CreateUserState extends State<CreateUserPage> {
             keyboardType: TextInputType.name,
             textAttribute: 'su nombre',
             icon: const Icon(Icons.text_fields, color: mainColor),
-            inputFormatter: const [],
+            inputFormatter: [
+              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+            ],
             validator: (String? value) {
               if (value == null || value.isEmpty) {
                 return 'Por favor ingrese su nombre';
@@ -228,6 +230,9 @@ class _CreateUserState extends State<CreateUserPage> {
               if (value == null || value.isEmpty) {
                 return 'Por favor ingrese su celular';
               }
+              if (value.length >= 15) {
+                return "El número de celular debe tener menos de 15 dígitos";
+              }
               return null;
             },
           ),
@@ -236,10 +241,13 @@ class _CreateUserState extends State<CreateUserPage> {
             controller: _phoneController,
             textAttribute: 'su teléfono',
             icon: const Icon(Icons.phone, color: mainColor),
-            inputFormatter: [FilteringTextInputFormatter.singleLineFormatter],
+            inputFormatter: [FilteringTextInputFormatter.digitsOnly],
             validator: (String? value) {
               if (value == null || value.isEmpty) {
                 return 'Por favor ingrese su telefono';
+              }
+              if (value.length != 7) {
+                return 'El teléfono debe tener exactamente 7 dígitos';
               }
               return null;
             },
@@ -282,6 +290,12 @@ class _CreateUserState extends State<CreateUserPage> {
         if (value == null || value.isEmpty) {
           return 'Por favor ingrese su correo';
         }
+        final emailRegExp =
+            RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+        if (!emailRegExp.hasMatch(value)) {
+          return 'Ingrese un correo válido con @ y dominio como .univalle y .edu';
+        }
         return null;
       },
     );
@@ -295,6 +309,7 @@ class _CreateUserState extends State<CreateUserPage> {
         Icons.lock,
         color: mainColor,
       ),
+      isPasswordField: true,
       inputFormatter: const [],
       validator: (value) {
         if (value == null || value.isEmpty) {

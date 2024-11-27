@@ -111,8 +111,7 @@ class CreateRequestState extends State<CreateRequest> {
 
   /// Subir archivo y agregar la solicitud.
   Future<void> addRequest() async {
-    if (fileNames.isEmpty) {
-      print("Por favor, complete todos los campos.");
+    if (!validateForm()) {
       return;
     }
 
@@ -137,8 +136,9 @@ class CreateRequestState extends State<CreateRequest> {
         'evidence_names': fileNames, // Guardar la lista de nombres
         'estado': 'Pendiente',
         'reason': _reasonController.text,
-        'fecha': selectedDate?.toIso8601String() ?? 'Fecha no seleccionada',
-        'userReference': reference
+        'fecha': selectedDate!.toIso8601String(),
+        'userReference': reference,
+        'subject': selectedSubject,
       });
 
       // ignore: use_build_context_synchronously
@@ -152,6 +152,55 @@ class CreateRequestState extends State<CreateRequest> {
     } catch (e) {
       print("Error al enviar solicitud: $e");
     }
+  }
+
+  bool validateForm() {
+    if (selectedSubject == null) {
+      showAnimatedSnackBar(context, 'Por favor, seleccione una materia',
+          Colors.red, Icons.error);
+      return false;
+    }
+
+    if (selectedDate == null) {
+      showAnimatedSnackBar(
+          context, 'Por favor, seleccione una fecha', Colors.red, Icons.error);
+      return false;
+    }
+
+    final now = DateTime.now();
+    final threeDaysAgo = now.subtract(const Duration(days: 3));
+
+    if (selectedDate!.isAfter(now)) {
+      showAnimatedSnackBar(
+        context,
+        'La fecha no puede ser futura',
+        Colors.red,
+        Icons.error,
+      );
+      return false;
+    }
+
+    if (selectedDate!.isBefore(threeDaysAgo)) {
+      showAnimatedSnackBar(
+        context,
+        'La fecha no puede ser más de 3 días en el pasado',
+        Colors.red,
+        Icons.error,
+      );
+      return false;
+    }
+
+    if (fileNames.isEmpty) {
+      showAnimatedSnackBar(
+        context,
+        'Por favor, adjunte al menos un archivo',
+        Colors.red,
+        Icons.error,
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /// Subida del archivo en Web.
@@ -188,6 +237,9 @@ class CreateRequestState extends State<CreateRequest> {
       selectedBytes = null;
       selectedFileName = null;
       selectedDate = null;
+      selectedSubject = null;
+      fileNames.clear();
+      fileBytes.clear();
     });
   }
 
@@ -195,256 +247,57 @@ class CreateRequestState extends State<CreateRequest> {
   Widget build(BuildContext context) {
     final Size sizeScreen = MediaQuery.sizeOf(context);
     return Center(
-      child: Form(
-        key: _formKey,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            elevation: 40,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormFieldModel(
-                      controller: _reasonController,
-                      textAttribute: 'la razon de la solicitud',
-                      icon: const Icon(
-                        Icons.text_snippet_outlined,
-                        color: mainColor,
-                      ),
-                      inputFormatter: const [],
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingrese la razon';
-                        }
-                        if (value.length > 51) {
-                          return 'Maximo cantidad de caracteres 50';
-                        }
-                        return null;
-                      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 40,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ComboBox(
+                    itemsList: subjects,
+                    hintText: 'materia',
+                    icon: const Icon(
+                      Icons.auto_stories_outlined,
+                      color: mainColor,
                     ),
-                    const SizedBox(height: 20),
-                    ComboBox(
-                      itemsList: subjects,
-                      hintText: 'Materia',
-                      icon: const Icon(
-                        Icons.auto_stories_outlined,
-                        color: mainColor,
-                      ),
-                      selectedValue: selectedSubject,
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedSubject = newValue;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    SimpleDatePickerFormField(
-                      onDateSelected: (DateTime? date) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (fileNames.isNotEmpty) ...[
-                          const Text(
-                            'Archivos Seleccionados:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: fileNames.length,
-                            itemBuilder: (context, index) {
-                              final fileName = fileNames[index];
-                              final fileType =
-                                  fileName.split('.').last.toLowerCase();
-
-                              // Verificar si es una imagen
-                              if (['png', 'jpg', 'jpeg'].contains(fileType)) {
-                                // Archivos de imagen
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.image,
-                                          color: mainColor,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            fileName,
-                                            style:
-                                                const TextStyle(fontSize: 16),
-                                            overflow: TextOverflow
-                                                .ellipsis, // Si el nombre es muy largo, se trunca
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.close,
-                                              color: Colors.red),
-                                          onPressed: () {
-                                            setState(() {
-                                              fileNames.removeAt(index);
-                                              if (kIsWeb) {
-                                                fileBytes.removeAt(index);
-                                              } else {
-                                                selectedFile =
-                                                    null; // O eliminar de una lista si guardas múltiples archivos
-                                              }
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    const Divider(), // Línea separadora opcional
-                                  ],
-                                );
-                              } else {
-                                // Archivos no imagen (PDF, DOCX)
-                                return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 5.0),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.insert_drive_file,
-                                          color: mainColor),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          fileName,
-                                          style: const TextStyle(fontSize: 16),
-                                          overflow: TextOverflow
-                                              .ellipsis, // Trunca nombres largos
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.close,
-                                            color: Colors.red),
-                                        onPressed: () {
-                                          setState(() {
-                                            fileNames.removeAt(index);
-                                            fileUrls.removeAt(index);
-                                            if (kIsWeb) {
-                                              fileBytes.removeAt(index);
-                                            } else {
-                                              selectedFile =
-                                                  null; // O eliminar de una lista si guardas múltiples archivos
-                                            }
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ]
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: selectFile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: mainColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: sizeScreen.width * 0.2,
-                          vertical: 20,
-                        ),
-                      ),
-                      child: const Text(
-                        'Adjuntar Evidencia',
-                        style: TextStyle(
-                          fontFamily: 'Urbanist',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          addRequest();
-                        } else {
-                          print('Formulario no válido');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: mainColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: sizeScreen.width * 0.2,
-                          vertical: 20,
-                        ),
-                      ),
-                      child: const Text(
-                        'Enviar Solicitud',
-                        style: TextStyle(
-                          fontFamily: 'Urbanist',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+                    selectedValue: selectedSubject,
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedSubject = newValue;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  SimpleDatePickerFormField(
+                    onDateSelected: (DateTime? date) {
+                      setState(() {
+                        selectedDate = date;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: selectFile,
+                    child: const Text('Adjuntar Evidencia'),
+                  ),
+                  if (selectedFileName != null)
+                    Text('Archivo seleccionado: $selectedFileName'),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: addRequest,
+                    child: const Text('Enviar Solicitud'),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required Icon icon,
-    List<TextInputFormatter>? inputFormatter,
-    TextInputType? keyboardType,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatter,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(fontSize: 18),
-        prefixIcon: icon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF950A67)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF950A67)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF950A67)),
         ),
       ),
     );

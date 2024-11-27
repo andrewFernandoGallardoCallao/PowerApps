@@ -46,12 +46,12 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const SizedBox(height: 50), 
+                const SizedBox(height: 50),
                 Image.asset(
                   'lib/assets/img/escudoUni.png',
-                  height: sizeScreen.height / 4, 
+                  height: sizeScreen.height / 4,
                 ),
-                const SizedBox(height: 20), 
+                const SizedBox(height: 20),
                 const Text(
                   "Iniciar Sesión",
                   style: TextStyle(

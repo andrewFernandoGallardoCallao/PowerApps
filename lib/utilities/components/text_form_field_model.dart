@@ -10,6 +10,7 @@ class TextFormFieldModel extends StatefulWidget {
   final List<TextInputFormatter> inputFormatter;
   final String? Function(String?)? validator;
   final bool isPasswordField;
+  final bool obscureText;
   
   // Constructor corregido con parámetros nombrados requeridos
   const TextFormFieldModel({
@@ -21,6 +22,7 @@ class TextFormFieldModel extends StatefulWidget {
     required this.icon,
     required this.inputFormatter,
     required this.validator,
+    this.obscureText = false,
   });
 
   @override
@@ -57,6 +59,7 @@ class _TextFormFieldModelState extends State<TextFormFieldModel> {
       cursorColor: Colors.grey[800],
       textInputAction: TextInputAction.next,
       validator: widget.validator,
+      
     );
   }
 }
