@@ -207,12 +207,11 @@ class CreateRequestState extends State<CreateRequest> {
         Colors.green,
         Icons.check,
       );
-
-      clearFields();
     } catch (e) {
       showAnimatedSnackBar(context, e.toString(), Colors.red, Icons.error);
     } finally {
       ProgressBar.closeProgressDialog(context);
+      clearFields();
     }
   }
 
@@ -254,6 +253,7 @@ class CreateRequestState extends State<CreateRequest> {
       selectedFileName = null;
       selectedDate = null;
       _reasonController.clear();
+      selectedSubject = null;
     });
   }
 

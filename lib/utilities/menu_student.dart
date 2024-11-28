@@ -7,6 +7,7 @@ import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/create_request.dart'; // Asegúrate de que este archivo esté correctamente importado
 import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
 
+
 class StudentMainMenu extends StatefulWidget {
   final Student student;
 
@@ -193,7 +194,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
     switch (estadoPermiso) {
       case 'Aprobado':
         return Colors.green;
-      case 'Cancelado':
+      case 'Reprobado':
         return Colors.red;
       case 'Pendiente':
         return Colors.yellow[800]!;
