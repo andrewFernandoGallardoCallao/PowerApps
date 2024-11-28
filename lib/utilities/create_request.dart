@@ -448,32 +448,48 @@ class CreateRequestState extends State<CreateRequest> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          addRequest();
-                        } else {
-                          print('Formulario no válido');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: mainColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: sizeScreen.width * 0.2,
-                          vertical: 20,
-                        ),
+                    onPressed: () {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        addRequest();
+                        setState(() {
+                          _formKey.currentState?.reset();
+                          _reasonController.clear();
+                          selectedSubject = null; 
+                          selectedDate = null;
+                          fileNames.clear();
+                          if (kIsWeb) {
+                            fileBytes.clear();
+                          } else {
+                            selectedFile = null;
+                          }
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('¡Solicitud enviada con éxito!')),
+                        );
+                      } else {
+                        print('Formulario no válido');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: mainColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                      child: const Text(
-                        'Enviar Solicitud',
-                        style: TextStyle(
-                          fontFamily: 'Urbanist',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: sizeScreen.width * 0.2,
+                        vertical: 20,
                       ),
                     ),
+                    child: const Text(
+                      'Enviar Solicitud',
+                      style: TextStyle(
+                        fontFamily: 'Urbanist',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
                     const SizedBox(height: 20),
                   ],
                 ),

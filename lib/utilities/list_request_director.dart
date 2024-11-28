@@ -18,6 +18,11 @@ class PermisosScreen extends StatefulWidget {
 class _PermisosScreenState extends State<PermisosScreen> {
   final permisosRef = instance.collection('request');
   bool isLoading = false;
+  String _searchQuery = '';
+  String _sortCriteria = 'Nombre'; // Criterio de ordenamiento inicial
+  bool _isAscending = true; // Dirección de ordenamiento
+
+
   @override
   Widget build(BuildContext context) {
     final Size sizeScreen = MediaQuery.sizeOf(context);
@@ -26,6 +31,33 @@ class _PermisosScreenState extends State<PermisosScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
         child: Column(
           children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por nombre',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value.toLowerCase(); 
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                 const SizedBox(width: 10),
+                IconButton(
+                  icon: Icon(Icons.filter_list),
+                  onPressed: _mostrarOpcionesFiltro,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -35,7 +67,7 @@ class _PermisosScreenState extends State<PermisosScreen> {
                     fontSize: 18,
                     fontFamily: 'Urbanist',
                     fontWeight: FontWeight.bold,
-                  ),
+                  ), 
                 ),
                 Text(
                   'Estado',
@@ -48,559 +80,320 @@ class _PermisosScreenState extends State<PermisosScreen> {
               ],
             ),
             const Divider(thickness: 2),
-            const SizedBox(height: 40),
-            _getPermmisos("Pendiente"),
+            const SizedBox(height: 20),
+            _getPermmisos(),
           ],
         ),
       ),
     );
   }
 
-  Expanded _getPermmisos(String permisoEstado) {
-    return Expanded(
-      child: StreamBuilder<QuerySnapshot>(
-        stream: permisosRef.snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+  Expanded _getPermmisos() {
+  return Expanded(
+    child: StreamBuilder<QuerySnapshot>(
+      // Aquí agregamos el filtro y el ordenamiento
+      stream: permisosRef
+          .orderBy(
+            // Esto depende de si el criterio de orden es 'Nombre' o 'Fecha'
+            _sortCriteria == 'Nombre' ? 'reason' : 'fecha',
+            descending: !_isAscending, // Si no es ascendente, es descendente
+          )
+          .where(
+            // Filtro de búsqueda solo si hay texto en _searchQuery
+            'reason', isGreaterThanOrEqualTo: _searchQuery.isNotEmpty ? _searchQuery : null)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error al cargar permisos'));
-          }
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error al cargar permisos'));
+        }
 
-          // Filtrar permisos por estado 'Pendiente'
-          final permisosPendientes = snapshot.data?.docs
-                  .where((permiso) => permiso['estado'] == permisoEstado)
-                  .toList() ??
-              [];
+        final permisos = snapshot.data?.docs ?? [];
 
-          if (permisosPendientes.isEmpty) {
-            return const Center(child: Text('No hay permisos pendientes'));
-          }
+        return ListView.builder(
+          itemCount: permisos.length,
+          itemBuilder: (context, index) {
+            final permiso = permisos[index];
+            final permisoId = permiso.id;
+            final razonPermiso = permiso['reason'] ?? 'Sin razón';
+            final estadoPermiso = permiso['estado'] ?? 'Sin estado';
+            final fechaPermiso = permiso['fecha'];
 
-          return ListView.builder(
-            itemCount: permisosPendientes.length,
-            itemBuilder: (context, index) {
-              final permiso = permisosPendientes[index];
-              final permisoId = permiso.id;
-              final razonPermiso = permiso['reason'] ?? 'Sin razón';
-              final estadoPermiso = permiso['estado'] ?? 'Sin estado';
-              final fechaPermiso = permiso['fecha'];
+            final List<dynamic> evidenciaUrls = permiso['evidence_urls'];
+            final List<dynamic> nombreArchivos = permiso['evidence_names'];
+            final DocumentReference reference = permiso['userReference'];
 
-              final List<dynamic> evidenciaUrls = permiso['evidence_urls'];
-              final List<dynamic> nombreArchivos = permiso['evidence_names'];
-              final DocumentReference reference = permiso['userReference'];
+            return FutureBuilder<DocumentSnapshot>(
+  future: reference.get(),
+  builder: (context, userSnapshot) {
+    if (userSnapshot.connectionState == ConnectionState.waiting) {
+      return const SizedBox.shrink();
+    }
 
-              return Card(
-                elevation: 5,
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+    if (userSnapshot.hasError || !userSnapshot.hasData || !userSnapshot.data!.exists) {
+      return const SizedBox.shrink();
+    }
+
+    final userData = userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
+    final userName = userData['name'] ?? 'Sin nombre';
+
+    if (_searchQuery.isNotEmpty &&
+        !userName.toLowerCase().contains(_searchQuery)) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      elevation: 5,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: ExpansionTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  userName,
+                  style: const TextStyle(
+                    fontFamily: 'Urbanist',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-                child: ExpansionTile(
-                  title: FutureBuilder<DocumentSnapshot>(
-                    future: reference.get(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        // Mostrar un indicador de carga mientras se obtienen los datos
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  razonPermiso,
-                                  style: const TextStyle(
-                                    fontFamily: 'Urbanist',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const CircularProgressIndicator(), // Indicador de carga
-                              ],
-                            ),
-                            Text(
-                              estadoPermiso,
-                              style: TextStyle(
-                                fontFamily: 'Urbanist',
-                                fontSize: 16,
-                                color: getColor(estadoPermiso),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        );
-                      }
+                Text(
+                  razonPermiso,
+                  style: const TextStyle(
+                    fontFamily: 'Urbanist',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              estadoPermiso,
+              style: TextStyle(
+                fontFamily: 'Urbanist',
+                fontSize: 16,
+                color: getColor(estadoPermiso),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        children: [
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: evidenciaUrls.length,
+            itemBuilder: (context, fileIndex) {
+              final url = evidenciaUrls[fileIndex];
+              final nombreArchivo = nombreArchivos[fileIndex];
 
-                      if (snapshot.hasError) {
-                        // Manejo de errores
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  razonPermiso,
-                                  style: const TextStyle(
-                                    fontFamily: 'Urbanist',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  'Error al cargar usuario',
-                                  style: const TextStyle(
-                                    fontFamily: 'Urbanist',
-                                    fontSize: 14,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              estadoPermiso,
-                              style: TextStyle(
-                                fontFamily: 'Urbanist',
-                                fontSize: 16,
-                                color: getColor(estadoPermiso),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        );
-                      }
+              return ListTile(
+                leading: _getIconForFile(nombreArchivo),
+                title: Text(
+                  nombreArchivo,
+                  style: const TextStyle(
+                    fontFamily: 'Urbanist',
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                onTap: () {
+                  _mostrarBottomSheetArchivo(
+                    context,
+                    nombreArchivo,
+                    url,
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  },
+);
 
-                      if (!snapshot.hasData || !snapshot.data!.exists) {
-                        // Manejo de caso donde no se encuentra el usuario
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  razonPermiso,
-                                  style: const TextStyle(
-                                    fontFamily: 'Urbanist',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const Text(
-                                  'Usuario no encontrado',
-                                  style: TextStyle(
-                                    fontFamily: 'Urbanist',
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              estadoPermiso,
-                              style: TextStyle(
-                                fontFamily: 'Urbanist',
-                                fontSize: 16,
-                                color: getColor(estadoPermiso),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        );
-                      }
+          },
+        );
+      },
+    ),
+  );
+}
 
-                      // Cuando los datos están disponibles
-                      final userName = snapshot.data!['name'] ?? 'Sin nombre';
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+// FILTRADO DE PERMISOS
+  void _mostrarOpcionesFiltro() {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text('Nombre (A-Z)'),
+            onTap: () {
+              setState(() {
+                _sortCriteria = 'Nombre';
+                _isAscending = false;
+              });
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Nombre (Z-A)'),
+            onTap: () {
+              setState(() {
+                _sortCriteria = 'Nombre';
+                _isAscending = true;
+              });
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Fecha (Reciente)'),
+            onTap: () {
+              setState(() {
+                _sortCriteria = 'Fecha';
+                _isAscending = false;
+              });
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Fecha (Antigua)'),
+            onTap: () {
+              setState(() {
+                _sortCriteria = 'Fecha';
+                _isAscending = true;
+              });
+              Navigator.pop(context);
+            },
+          )
+        ],
+      );
+    },
+  );
+}
+
+  void _mostrarDialogoConfirmacion(BuildContext context, String permisoId, String nuevoEstado, String accion) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text(
+                'Confirmar acción',
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RichText(
+                      text: TextSpan(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                userName,
-                                style: const TextStyle(
-                                  fontFamily: 'Urbanist',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Text(
-                                razonPermiso,
-                                style: const TextStyle(
-                                  fontFamily: 'Urbanist',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            estadoPermiso,
+                          const TextSpan(
+                            text: '¿Estás seguro de que deseas ',
                             style: TextStyle(
                               fontFamily: 'Urbanist',
-                              fontSize: 16,
-                              color: getColor(estadoPermiso),
+                              color: Colors.black,
+                            ),
+                          ),
+                          TextSpan(
+                            text: accion,
+                            style: TextStyle(
+                              fontFamily: 'Urbanist',
+                              color: nuevoEstado == 'Aprobado' ? Colors.green : Colors.red,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
-                      );
-                    },
-                  ),
-                  children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: evidenciaUrls.length,
-                      itemBuilder: (context, fileIndex) {
-                        final url = evidenciaUrls[fileIndex];
-                        final nombreArchivo = nombreArchivos[fileIndex];
-
-                        return ListTile(
-                          leading: _getIconForFile(nombreArchivo),
-                          title: Text(
-                            nombreArchivo,
-                            style: const TextStyle(
+                          const TextSpan(
+                            text: ' esta solicitud?',
+                            style: TextStyle(
                               fontFamily: 'Urbanist',
-                              color: Colors.blue,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                          onTap: () {
-                            _mostrarBottomSheetArchivo(
-                              context,
-                              nombreArchivo,
-                              url,
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              // Mostrar el modal de confirmación
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return StatefulBuilder(
-                                    builder: (context, setState) {
-                                      return AlertDialog(
-                                        title: const Text(
-                                          'Confirmar acción',
-                                          style: TextStyle(
-                                            fontFamily: 'Urbanist',
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        content: isLoading
-                                            ? const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              ) // Mostrar el ProgressIndicator si está cargando
-                                            : RichText(
-                                                text: const TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text:
-                                                          '¿Estás seguro de que deseas ',
-                                                      style: TextStyle(
-                                                        fontFamily: 'Urbanist',
-                                                        color: Colors
-                                                            .black, // Estilo por defecto
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text: 'aprobar',
-                                                      style: TextStyle(
-                                                        fontFamily: 'Urbanist',
-                                                        color: Colors
-                                                            .green, // Color para resaltar la palabra "reprobar"
-                                                        fontWeight: FontWeight
-                                                            .bold, // Opcional, para hacerla más prominente
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text: ' esta solicitud?',
-                                                      style: TextStyle(
-                                                        fontFamily: 'Urbanist',
-                                                        color: Colors
-                                                            .black, // Estilo por defecto
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                        actions: [
-                                          // Botón Cancelar
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context)
-                                                  .pop(); // Cerrar el modal
-                                            },
-                                            child: const Text(
-                                              'Cancelar',
-                                              style: TextStyle(
-                                                fontFamily: 'Urbanist',
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ),
-                                          // Botón Confirmar
-                                          TextButton(
-                                            onPressed: () async {
-                                              try {
-                                                // Cambiar el estado a cargando
-                                                setState(() {
-                                                  isLoading = true;
-                                                });
-
-                                                // Primero, realiza la actualización en Firestore
-                                                await _actualizarEstado(
-                                                  context,
-                                                  permisoId,
-                                                  'Aprobado',
-                                                  "Aprobada",
-                                                );
-
-                                                // Usar Future.delayed para cerrar el diálogo después de un pequeño retraso
-                                                Future.delayed(
-                                                  const Duration(
-                                                    milliseconds: 300,
-                                                  ),
-                                                  () {
-                                                    if (mounted) {
-                                                      Navigator.of(context)
-                                                          .pop(); // Ahora cierra el diálogo
-                                                    }
-                                                  },
-                                                );
-
-                                                // Mostrar mensaje de éxito
-                                              } catch (e) {
-                                                // Mostrar mensaje de error si ocurre algún fallo
-                                                if (mounted) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          'Error al aprobar la solicitud: $e'),
-                                                    ),
-                                                  );
-                                                }
-                                              } finally {
-                                                // Asegurarse de que el estado de loading se cambie al final del proceso
-                                                setState(() {
-                                                  isLoading = false;
-                                                });
-                                              }
-                                            },
-                                            child: const Text(
-                                              'Confirmar',
-                                              style: TextStyle(
-                                                fontFamily: 'Urbanist',
-                                                color: Colors.green,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                            ),
-                            child: const Text(
-                              'Aprobar',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'Urbanist',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return StatefulBuilder(
-                                    builder: (context, setState) {
-                                      return AlertDialog(
-                                        title: const Text(
-                                          'Confirmar acción',
-                                          style: TextStyle(
-                                            fontFamily: 'Urbanist',
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        content: isLoading
-                                            ? const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              ) // Mostrar el ProgressIndicator si está cargando
-                                            : RichText(
-                                                text: const TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text:
-                                                          '¿Estás seguro de que deseas ',
-                                                      style: TextStyle(
-                                                        fontFamily: 'Urbanist',
-                                                        color: Colors
-                                                            .black, // Estilo por defecto
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text: 'reprobar',
-                                                      style: TextStyle(
-                                                        fontFamily: 'Urbanist',
-                                                        color: Colors
-                                                            .red, // Color para resaltar la palabra "reprobar"
-                                                        fontWeight: FontWeight
-                                                            .bold, // Opcional, para hacerla más prominente
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text: ' esta solicitud?',
-                                                      style: TextStyle(
-                                                        fontFamily: 'Urbanist',
-                                                        color: Colors
-                                                            .black, // Estilo por defecto
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                        actions: [
-                                          // Botón Cancelar
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context)
-                                                  .pop(); // Cerrar el modal
-                                            },
-                                            child: const Text(
-                                              'Cancelar',
-                                              style: TextStyle(
-                                                fontFamily: 'Urbanist',
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ),
-                                          // Botón Confirmar
-                                          TextButton(
-                                            onPressed: () async {
-                                              try {
-                                                // Cambiar el estado a cargando
-                                                setState(() {
-                                                  isLoading = true;
-                                                });
-
-                                                // Primero, realiza la actualización en Firestore
-                                                await _actualizarEstado(
-                                                  context,
-                                                  permisoId,
-                                                  'Reprobado',
-                                                  "Reprobada",
-                                                );
-
-                                                // Usar Future.delayed para cerrar el diálogo después de un pequeño retraso
-                                                Future.delayed(
-                                                  const Duration(
-                                                    milliseconds: 300,
-                                                  ),
-                                                  () {
-                                                    if (mounted) {
-                                                      Navigator.of(context)
-                                                          .pop(); // Ahora cierra el diálogo
-                                                    }
-                                                  },
-                                                );
-
-                                                // Mostrar mensaje de éxito
-                                              } catch (e) {
-                                                // Mostrar mensaje de error si ocurre algún fallo
-                                                if (mounted) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          'Error al aprobar la solicitud: $e'),
-                                                    ),
-                                                  );
-                                                }
-                                              } finally {
-                                                // Asegurarse de que el estado de loading se cambie al final del proceso
-                                                setState(() {
-                                                  isLoading = false;
-                                                });
-                                              }
-                                            },
-                                            child: const Text(
-                                              'Confirmar',
-                                              style: TextStyle(
-                                                fontFamily: 'Urbanist',
-                                                color: Colors.green,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                            ),
-                            child: const Text(
-                              'Reprobar',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'Urbanist',
-                              ),
+                              color: Colors.black,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      fontFamily: 'Urbanist',
+                      color: Colors.red,
+                    ),
+                  ),
                 ),
-              );
-            },
-          );
-        },
-      ),
+                TextButton(
+                  onPressed: () async {
+                    try {
+                      setState(() {
+                        isLoading = true;
+                      });
+
+                      await _actualizarEstado(
+                        context,
+                        permisoId,
+                        nuevoEstado,
+                        accion,
+                      );
+
+                      Future.delayed(
+                        const Duration(milliseconds: 300),
+                        () {
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      );
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error al $accion la solicitud: $e'),
+                          ),
+                        );
+                      }
+                    } finally {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
+                  },
+                  child: const Text(
+                    'Confirmar',
+                    style: TextStyle(
+                      fontFamily: 'Urbanist',
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -731,7 +524,7 @@ class _PermisosScreenState extends State<PermisosScreen> {
       if (mounted) {
         showAnimatedSnackBar(
           context,
-          'Solicitud $accion con exito',
+          'Solicitud ${accion}da con éxito',
           Colors.green,
           Icons.check,
         );
@@ -746,17 +539,6 @@ class _PermisosScreenState extends State<PermisosScreen> {
         );
       }
     }
-  }
-
-  void _mostrarMensaje(BuildContext context, String mensaje) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mensaje, style: const TextStyle(fontSize: 16)),
-        backgroundColor: Colors.black87,
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   Color getColor(String estadoPermiso) {
