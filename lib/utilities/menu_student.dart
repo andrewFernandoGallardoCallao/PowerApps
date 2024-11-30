@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:power_apps_flutter/models/student.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
-import 'package:power_apps_flutter/utilities/create_request.dart'; // Asegúrate de que este archivo esté correctamente importado
+import 'package:power_apps_flutter/utilities/create_request.dart';
 import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
+import 'package:power_apps_flutter/utilities/subject_configuration.dart'; // Asegúrate de crear este archivo
 
 class StudentMainMenu extends StatefulWidget {
   final Student student;
@@ -22,25 +23,19 @@ class StudentMainMenu extends StatefulWidget {
 class StudentMainMenuState extends State<StudentMainMenu> {
   int _currentIndex = 0;
   final List<String> _titles = [
-    'Mis Solicitudes', // Título para la primera pestaña
-    'Crear Solicitud', // Título para la segunda pestaña
-    'Historial', // Título para la tercera pestaña
-    'Perfil', // Título para la cuarta pestaña
+    'Mis Solicitudes',
+    'Crear Solicitud',
+    'Configurar Materias',
+    'Historial',
+    'Perfil',
   ];
 
-  // Las páginas dentro del IndexedStack
   List<Widget> _getPages() {
     return [
-      // Página de Solicitudes del Estudiante (índice 0)
       _streamRequest(),
-
-      // Página de Crear Solicitud (índice 1)
-      CreateRequest(student: widget.student), // Pasa el estudiante aquí
-
-      // Página de Historial (índice 2)
+      CreateRequest(student: widget.student),
+      SubjectConfiguration(student: widget.student), // Nueva página
       const Center(child: Text('Historial')),
-
-      // Página de Perfil (índice 3)
       const Center(child: Text('Perfil')),
     ];
   }
@@ -51,12 +46,10 @@ class StudentMainMenuState extends State<StudentMainMenu> {
     });
   }
 
-  // Método para obtener las solicitudes del usuario
   StreamBuilder<QuerySnapshot<Object?>> _streamRequest() {
     return StreamBuilder<QuerySnapshot>(
       stream: _getUserRequests(),
       builder: (context, snapshot) {
-        // Manejo de estados del snapshot
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -75,7 +68,6 @@ class StudentMainMenuState extends State<StudentMainMenu> {
           );
         }
 
-        // Construimos la lista con los datos del snapshot
         return ListView(
           children: [
             Padding(
@@ -101,8 +93,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                 ],
               ),
             ),
-            // Construye las tarjetas
-            ..._getRequest(snapshot), // Uso del operador "spread"
+            ..._getRequest(snapshot),
           ],
         );
       },
@@ -111,10 +102,9 @@ class StudentMainMenuState extends State<StudentMainMenu> {
 
   List<Widget> _getRequest(AsyncSnapshot<QuerySnapshot<Object?>> snapshot) {
     return snapshot.data!.docs.map((doc) {
-      // Validación para evitar datos nulos
       final data = doc.data() as Map<String, dynamic>?;
       if (data == null) {
-        return const SizedBox(); // Retorna un widget vacío si no hay datos
+        return const SizedBox();
       }
 
       return Card(
@@ -138,7 +128,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                     ),
                   ),
                   Text(
-                    "${data['reason'] ?? 'Sin razón'}", // Manejo de campos nulos
+                    "${data['reason'] ?? 'Sin razón'}",
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -183,9 +173,9 @@ class StudentMainMenuState extends State<StudentMainMenu> {
   String _formatDate(String isoDate) {
     try {
       DateTime parsedDate = DateTime.parse(isoDate);
-      return DateFormat('dd/MM/yyyy').format(parsedDate); // Formatea la fecha
+      return DateFormat('dd/MM/yyyy').format(parsedDate);
     } catch (e) {
-      return 'Fecha inválida'; // Manejo de errores
+      return 'Fecha inválida';
     }
   }
 
@@ -288,8 +278,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children:
-            _getPages(), // Usamos _getPages() para cargar las vistas dinámicamente
+        children: _getPages(),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -305,6 +294,10 @@ class StudentMainMenuState extends State<StudentMainMenu> {
             icon: Icon(Icons.add_circle_outline),
             label: 'Crear Solicitud',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Configurar Materias',
+          ),
         ],
       ),
     );
@@ -313,8 +306,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
   void _signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacementNamed(
-          context, '/Login'); // Redirige a la pantalla de login
+      Navigator.pushReplacementNamed(context, '/Login');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cerrar sesión: $e')),
@@ -322,3 +314,4 @@ class StudentMainMenuState extends State<StudentMainMenu> {
     }
   }
 }
+
