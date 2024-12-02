@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:power_apps_flutter/utilities/components/filter_state.dart';
 import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/components/snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 
 class GetPermisosScreen extends StatefulWidget {
   final int accion;
@@ -543,6 +545,9 @@ class _GetPermisosScreenState extends State<GetPermisosScreen> {
 
   Future<List<QueryDocumentSnapshot<Object?>>> _obtenerDatosFiltrados(
       List<QueryDocumentSnapshot<Object?>> permisos) async {
+    final selectedFilter =
+        Provider.of<FilterState>(context, listen: false).selectedFilter;
+
     // Extraer todas las referencias de usuarios
     final userReferences = permisos
         .map((permiso) => permiso['userReference'] as DocumentReference)
@@ -574,6 +579,46 @@ class _GetPermisosScreenState extends State<GetPermisosScreen> {
           ? estado == "Pendiente" && coincideBusqueda
           : estado != "Pendiente" && coincideBusqueda;
     }).toList();
+
+    // Aplicar ordenamiento basado en el filtro seleccionado
+    switch (selectedFilter) {
+      case 'NombreAZ':
+        permisosFiltrados.sort((a, b) {
+          final userA =
+              usuariosMap[(a['userReference'] as DocumentReference).id];
+          final userB =
+              usuariosMap[(b['userReference'] as DocumentReference).id];
+          return (userA['name'] as String)
+              .toLowerCase()
+              .compareTo((userB['name'] as String).toLowerCase());
+        });
+        break;
+      case 'NombreZA':
+        permisosFiltrados.sort((a, b) {
+          final userA =
+              usuariosMap[(a['userReference'] as DocumentReference).id];
+          final userB =
+              usuariosMap[(b['userReference'] as DocumentReference).id];
+          return (userB['name'] as String)
+              .toLowerCase()
+              .compareTo((userA['name'] as String).toLowerCase());
+        });
+        break;
+      case 'FechaRecientes':
+        permisosFiltrados.sort((a, b) {
+          final fechaA = DateTime.parse(a['fecha'] as String);
+          final fechaB = DateTime.parse(b['fecha'] as String);
+          return fechaB.compareTo(fechaA);
+        });
+        break;
+      case 'FechaAntiguas':
+        permisosFiltrados.sort((a, b) {
+          final fechaA = DateTime.parse(a['fecha'] as String);
+          final fechaB = DateTime.parse(b['fecha'] as String);
+          return fechaA.compareTo(fechaB);
+        });
+        break;
+    }
 
     return permisosFiltrados;
   }

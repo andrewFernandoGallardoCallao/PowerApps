@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:power_apps_flutter/utilities/components/filter_state.dart';
 import 'package:power_apps_flutter/utilities/components/get_permisos.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
+import 'package:provider/provider.dart';
 
 class PermisosScreenHistory extends StatefulWidget {
   const PermisosScreenHistory({
@@ -14,7 +16,6 @@ class PermisosScreenHistory extends StatefulWidget {
 class _PermisosScreenHistoryState extends State<PermisosScreenHistory> {
   bool isLoading = false;
   String searchQuery = ""; // Para almacenar el texto de búsqueda
-  String selectedFilter = ""; // Filtro seleccionado
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,15 +135,15 @@ class _PermisosScreenHistoryState extends State<PermisosScreenHistory> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Ordenar por fecha
               ListTile(
                 title: const Text('Fecha (Recientes primero)'),
                 leading: const Icon(Icons.calendar_today),
                 onTap: () {
                   setState(() {
-                    selectedFilter = 'FechaRecientes';
+                    Provider.of<FilterState>(context, listen: false)
+                        .setSelectedFilter('FechaRecientes');
+                    Navigator.pop(context); // Cerrar el BottomSheet
                   });
-                  Navigator.pop(context); // Cerrar el BottomSheet
                 },
               ),
               ListTile(
@@ -150,24 +151,25 @@ class _PermisosScreenHistoryState extends State<PermisosScreenHistory> {
                 leading: const Icon(Icons.calendar_today_outlined),
                 onTap: () {
                   setState(() {
-                    selectedFilter = 'FechaAntiguas';
+                    Provider.of<FilterState>(context, listen: false)
+                        .setSelectedFilter('FechaAntiguas');
+                    Navigator.pop(context); // Cerrar el BottomSheet
                   });
-                  Navigator.pop(context); // Cerrar el BottomSheet
                 },
               ),
               Divider(
                 thickness: 0.7,
                 color: Colors.grey[500],
               ),
-              // Ordenar por nombre
               ListTile(
                 title: const Text('Nombre (A-Z)'),
                 leading: const Icon(Icons.sort_by_alpha),
                 onTap: () {
                   setState(() {
-                    selectedFilter = 'NombreAZ';
+                    Provider.of<FilterState>(context, listen: false)
+                        .setSelectedFilter('NombreAZ');
+                    Navigator.pop(context); // Cerrar el BottomSheet
                   });
-                  Navigator.pop(context); // Cerrar el BottomSheet
                 },
               ),
               ListTile(
@@ -175,9 +177,10 @@ class _PermisosScreenHistoryState extends State<PermisosScreenHistory> {
                 leading: const Icon(Icons.sort_by_alpha_outlined),
                 onTap: () {
                   setState(() {
-                    selectedFilter = 'NombreZA';
+                    Provider.of<FilterState>(context, listen: false)
+                        .setSelectedFilter('NombreZA');
+                    Navigator.pop(context); // Cerrar el BottomSheet
                   });
-                  Navigator.pop(context); // Cerrar el BottomSheet
                 },
               ),
             ],
