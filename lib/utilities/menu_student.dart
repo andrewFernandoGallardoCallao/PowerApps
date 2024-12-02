@@ -7,7 +7,6 @@ import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/create_request.dart'; // Asegúrate de que este archivo esté correctamente importado
 import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
 
-
 class StudentMainMenu extends StatefulWidget {
   final Student student;
 
@@ -215,82 +214,176 @@ class StudentMainMenuState extends State<StudentMainMenu> {
   @override
   Widget build(BuildContext context) {
     final Size sizeScreen = MediaQuery.sizeOf(context);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mainColor,
         elevation: 0,
         toolbarHeight: 100,
         flexibleSpace: Padding(
-          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Título del AppBar
               Text(
                 _titles[_currentIndex],
                 style: TextStyle(
                   fontFamily: 'Urbanist',
-                  fontSize: sizeScreen.width * 0.04,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
+              // Verificación del tamaño de la pantalla
+              sizeScreen.width > 600
+                  ? Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey[300],
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              widget.student.name,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              widget.student.mail,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              widget.student.career,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.exit_to_app,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                          onPressed: _signOut,
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey[300],
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                          ),
+                        ),
+                        PopupMenuButton<int>(
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: Colors.white,
+                            size: sizeScreen.width * 0.06,
+                          ),
+                          onSelected: (int selected) {
+                            if (selected == 0) {
+                              _signOut();
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<int>(
+                              value: 1,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                widget.student.name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              Text(
+                                                widget.student.mail,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                              Text(
+                                                widget.student.career,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem<int>(
+                              value: 0,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.exit_to_app,
+                                    color: Colors.red[400],
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    "Salir",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        widget.student.name,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        widget.student.mail,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        widget.student.career,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.exit_to_app,
-                      color: Colors.white,
-                      size: sizeScreen.width * 0.04,
-                    ),
-                    onPressed: () {
-                      _signOut();
-                    },
-                  ),
-                ],
-              ),
             ],
           ),
         ),
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children:
-            _getPages(), // Usamos _getPages() para cargar las vistas dinámicamente
+        children: _getPages(),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

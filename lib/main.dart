@@ -27,21 +27,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/Login',
+      initialRoute: '/MenuDirector',
       routes: {
         '/Login': (context) => const LoginPage(),
         '/CreateDirector': (context) => const CreateDirector(),
         '/PermisionScreen': (context) => PermisosScreen(),
-        // '/MenuDirector': (context) => DirectorMainMenu(
-        //       director: Director(
-        //         id: '2MiymTliZ8OSbzxkOxmyZhx5B4D3',
-        //         name: "Joaquin Justiniano",
-        //         career: 'ISI',
-        //         password: 'AnDrEw12345%',
-        //         mail: 'andrewgallardo777@gmail.com',
-        //         type: 'director',
-        //       ),
-        //     ),
+        '/MenuDirector': (context) => DirectorMainMenu(
+              director: Director(
+                id: '2MiymTliZ8OSbzxkOxmyZhx5B4D3',
+                name: "Joaquin Justiniano",
+                career: 'ISI',
+                password: 'AnDrEw12345%',
+                mail: 'andrewgallardo777@gmail.com',
+                type: 'director',
+              ),
+            ),
         // '/MenuStudent': (context) => StudentMainMenu(
         //       student: Student(
         //         id: 'ZQSnrNOqEQXe6Ma1NAi6sKOj00i2',
