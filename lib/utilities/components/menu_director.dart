@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:power_apps_flutter/models/director.dart';
 import 'package:power_apps_flutter/utilities/components/list_request_history.dart';
@@ -37,6 +38,7 @@ class _DirectorMainMenuState extends State<DirectorMainMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final Size sizeScreen = MediaQuery.sizeOf(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mainColor,
@@ -56,48 +58,147 @@ class _DirectorMainMenuState extends State<DirectorMainMenu> {
                   color: Colors.white,
                 ),
               ),
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
+              sizeScreen.width > 600
+                  ? Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey[300],
+                          child: const Icon(
+                            Icons.person,
+                            color: Color.fromARGB(255, 255, 250, 250),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              widget.director.name,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              widget.director.mail,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              widget.director.career,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.exit_to_app,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                          onPressed: _signOut,
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey[300],
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                          ),
+                        ),
+                        PopupMenuButton<int>(
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: Colors.white,
+                            size: sizeScreen.width * 0.06,
+                          ),
+                          onSelected: (int selected) {
+                            if (selected == 0) {
+                              _signOut();
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<int>(
+                              value: 1,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                widget.director.name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              Text(
+                                                widget.director.mail,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                              Text(
+                                                widget.director.career,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem<int>(
+                              value: 0,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.exit_to_app,
+                                    color: Colors.red[400],
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    "Salir",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        widget.director.name,
-                        style: const TextStyle(
-                          fontFamily: 'Urbanist',
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        widget.director.mail,
-                        style: const TextStyle(
-                          fontFamily: 'Urbanist',
-                          fontSize: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        widget.director.career,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontFamily: 'Urbanist',
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -123,5 +224,17 @@ class _DirectorMainMenuState extends State<DirectorMainMenu> {
         ],
       ),
     );
+  }
+
+  void _signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(
+          context, '/Login'); // Redirige a la pantalla de login
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión: $e')),
+      );
+    }
   }
 }
