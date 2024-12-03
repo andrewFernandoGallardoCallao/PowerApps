@@ -429,6 +429,7 @@ class CreateRequestState extends State<CreateRequest> {
                       onPressed: selectFile,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: mainColor,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5),
                         ),
@@ -472,6 +473,7 @@ class CreateRequestState extends State<CreateRequest> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: mainColor,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
