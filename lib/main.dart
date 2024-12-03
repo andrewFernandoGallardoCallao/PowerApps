@@ -5,7 +5,10 @@ import 'package:power_apps_flutter/utilities/admin_create_director.dart';
 import 'package:power_apps_flutter/utilities/components/filter_state.dart';
 import 'package:power_apps_flutter/utilities/list_request_director.dart';
 import 'package:power_apps_flutter/utilities/login_page.dart';
+import 'package:power_apps_flutter/utilities/menu_student.dart';
 import 'package:provider/provider.dart';
+
+import 'models/student.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +29,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute: '/Login',
+        initialRoute: '/MenuStudent',
         routes: {
           '/Login': (context) => const LoginPage(),
           '/CreateDirector': (context) => const CreateDirector(),
@@ -41,16 +44,15 @@ class MyApp extends StatelessWidget {
           //         type: 'director',
           //       ),
           //     ),
-          // '/MenuStudent': (context) => StudentMainMenu(
-          //       student: Student(
-          //         id: 'ZQSnrNOqEQXe6Ma1NAi6sKOj00i2',
-          //         career: 'Ing. Sistemas',
-          //         mail: 'gca5001500@est.univalle.edu',
-          //         name: 'Andrew',
-          //         password: '123',
-          //         type: 'Student',
-          //       ),
-          //     )
+          '/MenuStudent': (context) => StudentMainMenu(
+                student: Student(
+                  id: 'ZQSnrNOqEQXe6Ma1NAi6sKOj00i2',
+                  career: 'Ing. Sistemas',
+                  mail: 'gca5001500@est.univalle.edu',
+                  name: 'Andrew',
+                  type: 'Student',
+                ),
+              )
         },
       ),
     );

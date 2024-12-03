@@ -40,7 +40,9 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: null,
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0.0),
+        padding: EdgeInsets.symmetric(
+          horizontal: sizeScreen.width <= 600 ? 20.0 : 100.0,
+        ),
         child: SingleChildScrollView(
           child: Center(
             child: Column(

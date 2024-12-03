@@ -2,10 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
 import 'package:power_apps_flutter/models/student.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
+import 'package:power_apps_flutter/utilities/components/subjects_config.dart';
 import 'package:power_apps_flutter/utilities/create_request.dart'; // Asegúrate de que este archivo esté correctamente importado
 import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class StudentMainMenu extends StatefulWidget {
   final Student student;
@@ -22,26 +27,16 @@ class StudentMainMenu extends StatefulWidget {
 class StudentMainMenuState extends State<StudentMainMenu> {
   int _currentIndex = 0;
   final List<String> _titles = [
-    'Mis Solicitudes', // Título para la primera pestaña
-    'Crear Solicitud', // Título para la segunda pestaña
-    'Historial', // Título para la tercera pestaña
-    'Perfil', // Título para la cuarta pestaña
+    'Solicitudes',
+    'Crear Solicitud',
+    'Configuración Materias',
   ];
 
-  // Las páginas dentro del IndexedStack
   List<Widget> _getPages() {
     return [
-      // Página de Solicitudes del Estudiante (índice 0)
       _streamRequest(),
-
-      // Página de Crear Solicitud (índice 1)
-      CreateRequest(student: widget.student), // Pasa el estudiante aquí
-
-      // Página de Historial (índice 2)
-      const Center(child: Text('Historial')),
-
-      // Página de Perfil (índice 3)
-      const Center(child: Text('Perfil')),
+      CreateRequest(student: widget.student),
+      Subjects_Config(),
     ];
   }
 
@@ -91,12 +86,30 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                       fontSize: 25,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.filter_list_outlined,
-                      color: mainColor,
-                    ),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.filter_list_outlined,
+                          color: mainColor,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final requests = snapshot.data!.docs;
+                          await generateReport(requests);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Reporte PDF descargado.')),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.download,
+                          color: mainColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -189,6 +202,46 @@ class StudentMainMenuState extends State<StudentMainMenu> {
     }
   }
 
+// Método para generar y descargar el reporte PDF
+  Future<void> generateReport(
+      List<QueryDocumentSnapshot<Object?>> requests) async {
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.ListView.builder(
+            itemCount: requests.length,
+            itemBuilder: (context, index) {
+              final data = requests[index].data() as Map<String, dynamic>?;
+              if (data == null) return pw.SizedBox();
+              return pw.Container(
+                margin: const pw.EdgeInsets.all(8),
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.amber),
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text("Razón: ${data['reason'] ?? 'Sin razón'}"),
+                    pw.SizedBox(height: 4),
+                    pw.Text("Fecha: ${data['fecha'] ?? 'Fecha inválida'}"),
+                    pw.SizedBox(height: 4),
+                    pw.Text("Estado: ${data['estado'] ?? 'Desconocido'}"),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/reporte.pdf");
+    await file.writeAsBytes(await pdf.save());
+  }
+
   Color getColor(String estadoPermiso) {
     switch (estadoPermiso) {
       case 'Aprobado':
@@ -243,7 +296,7 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                           backgroundColor: Colors.grey[300],
                           child: const Icon(
                             Icons.person,
-                            color: Colors.white,
+                            color: Color.fromARGB(255, 255, 250, 250),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -399,6 +452,10 @@ class StudentMainMenuState extends State<StudentMainMenu> {
             icon: Icon(Icons.add_circle_outline),
             label: 'Crear Solicitud',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.subject),
+            label: 'Materias',
+          )
         ],
       ),
     );
