@@ -18,6 +18,11 @@ class _PermisosScreenState extends State<PermisosScreen> {
   final permisosRef = instance.collection('request');
   bool isLoading = false;
   String searchQuery = "";
+  String _searchQuery = '';
+  String _sortCriteria = 'Nombre'; // Criterio de ordenamiento inicial
+  bool _isAscending = true; // Dirección de ordenamiento
+
+
   @override
   Widget build(BuildContext context) {
     final Size sizeScreen = MediaQuery.sizeOf(context);
@@ -192,4 +197,66 @@ class _PermisosScreenState extends State<PermisosScreen> {
       },
     );
   }
+
+  /*Future<void> _abrirArchivo(String url) async {
+    final uri = Uri.parse(url);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    } else {
+      throw 'No se pudo abrir el archivo: $url';
+    }
+  }
+
+  Future<void> _actualizarEstado(BuildContext context, String permisoId,
+      String nuevoEstado, String accion) async {
+    try {
+      await permisosRef.doc(permisoId).update({'estado': nuevoEstado});
+
+      if (mounted) {
+        showAnimatedSnackBar(
+          context,
+          'Solicitud $accion con exito',
+          Colors.green,
+          Icons.check,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showAnimatedSnackBar(
+          context,
+          'Error al procesar la solicitud',
+          Colors.red,
+          Icons.error,
+        );
+      }
+    }
+  }
+
+  void _mostrarMensaje(BuildContext context, String mensaje) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje, style: const TextStyle(fontSize: 16)),
+        backgroundColor: Colors.black87,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Color getColor(String estadoPermiso) {
+    switch (estadoPermiso) {
+      case 'Aprobado':
+        return Colors.green;
+      case 'Cancelado':
+        return Colors.red;
+      case 'Pendiente':
+        return Colors.yellow[800]!;
+      default:
+        return Colors.black;
+    }
+  }*/
 }

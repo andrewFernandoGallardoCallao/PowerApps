@@ -6,11 +6,12 @@ import 'package:pdf/pdf.dart';
 import 'package:power_apps_flutter/models/student.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
 import 'package:power_apps_flutter/utilities/components/subjects_config.dart';
-import 'package:power_apps_flutter/utilities/create_request.dart'; // Asegúrate de que este archivo esté correctamente importado
+import 'package:power_apps_flutter/utilities/create_request.dart'; 
 import 'package:power_apps_flutter/utilities/components/firebase_instance.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:open_file/open_file.dart';
 
 class StudentMainMenu extends StatefulWidget {
   final Student student;
@@ -125,76 +126,94 @@ class StudentMainMenuState extends State<StudentMainMenu> {
   }
 
   List<Widget> _getRequest(AsyncSnapshot<QuerySnapshot<Object?>> snapshot) {
-    return snapshot.data!.docs.map((doc) {
-      // Validación para evitar datos nulos
-      final data = doc.data() as Map<String, dynamic>?;
-      if (data == null) {
-        return const SizedBox(); // Retorna un widget vacío si no hay datos
-      }
+  return snapshot.data!.docs.map((doc) {
+    // Validación para evitar datos nulos
+    final data = doc.data() as Map<String, dynamic>?;
+    if (data == null) {
+      return const SizedBox(); // Retorna un widget vacío si no hay datos
+    }
 
-      return Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        elevation: 10,
-        margin: const EdgeInsets.only(bottom: 10),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    "Razón: ",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      elevation: 10,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  "Razón: ",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
                   ),
-                  Text(
-                    "${data['reason'] ?? 'Sin razón'}", // Manejo de campos nulos
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Fecha: ${_formatDate(data['fecha'] ?? '')}",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
                 ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Text(
-                    "Estado: ",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                Text(
+                  "${data['reason'] ?? 'Sin razón'}", // Manejo de campos nulos
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
                   ),
-                  Text(
-                    "${data['estado'] ?? 'Desconocido'}",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: getColor(data['estado'] ?? ''),
-                    ),
-                  ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Fecha: ${_formatDate(data['fecha'] ?? '')}",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  "Estado: ",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  "${data['estado'] ?? 'Desconocido'}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: getColor(data['estado'] ?? ''),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await generateSingleReport(
+                  data,
+                  widget.student.name,
+                  widget.student.career,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('PDF generado y descargado.')),
+                );
+              },
+              icon: const Icon(Icons.download),
+              label: const Text('Descargar PDF'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: mainColor,
+                foregroundColor: Colors.white
+              ),
+            ),
+          ],
         ),
-      );
-    }).toList();
-  }
-
+      ),
+    );
+  }).toList();
+}
   String _formatDate(String isoDate) {
     try {
       DateTime parsedDate = DateTime.parse(isoDate);
@@ -203,6 +222,52 @@ class StudentMainMenuState extends State<StudentMainMenu> {
       return 'Fecha inválida'; // Manejo de errores
     }
   }
+
+Future<void> generateSingleReport(
+    Map<String, dynamic> data, String studentName, String career) async {
+  final pdf = pw.Document();
+
+  // Construcción Básica para el PDF
+  pdf.addPage(
+    pw.Page(
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text("Nombre Estudiante: $studentName"),
+            pw.SizedBox(height: 4),
+            pw.Text("Carrera: $career"),
+            pw.SizedBox(height: 4),
+            pw.Text("Razón: ${data['reason'] ?? 'Sin razón'}"),
+            pw.SizedBox(height: 4),
+            pw.Text("Fecha: ${data['fecha'] ?? 'Fecha inválida'}"),
+            pw.SizedBox(height: 4),
+            pw.Text("Estado: ${data['estado'] ?? 'Desconocido'}"),
+          ],
+        );
+      },
+    ),
+  );
+
+  try {
+    // Obtener la carpeta de descargas del dispositivo
+    final downloadsDirectory = await getExternalStorageDirectory();
+
+    if (downloadsDirectory == null) {
+      throw Exception("No se pudo acceder al directorio de descargas.");
+    }
+
+    // Guardar el PDF en la carpeta de descargas
+    final filePath = "${downloadsDirectory.path}/reporte_individual.pdf";
+    final file = File(filePath);
+    await file.writeAsBytes(await pdf.save());
+
+    // Abrir el archivo automáticamente después de guardarlo
+    await OpenFile.open(filePath);
+  } catch (e) {
+    print("Error al generar el PDF: $e");
+  }
+}
 
 // Método para generar y descargar el reporte PDF
   Future<void> generateReport(
@@ -280,7 +345,6 @@ class StudentMainMenuState extends State<StudentMainMenu> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Título del AppBar
               Text(
                 _titles[_currentIndex],
                 style: TextStyle(

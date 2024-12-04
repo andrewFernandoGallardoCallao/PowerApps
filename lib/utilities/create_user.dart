@@ -195,11 +195,15 @@ class _CreateUserState extends State<CreateUserPage> {
             textAttribute: 'su nombre',
             icon: const Icon(Icons.text_fields, color: mainColor),
             inputFormatter: [
-              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')), // Solo letras y espacios
             ],
             validator: (String? value) {
               if (value == null || value.isEmpty) {
-                return 'Por favor ingrese su nombre';
+                return 'Por favor ingrese su nombre completo';
+              }
+              final nameRegExp = RegExp(r'^([A-Z][a-z]+)(\s[A-Z][a-z]+)*$');
+              if (!nameRegExp.hasMatch(value)) {
+                return 'El nombre debe empezar con mayúsculas y apellido';
               }
               return null;
             },
