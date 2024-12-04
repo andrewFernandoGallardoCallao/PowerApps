@@ -1,27 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:power_apps_flutter/utilities/components/main_color.dart';
 
-class SimpleDatePickerFormField extends StatefulWidget {
-  final ValueChanged<DateTime?> onDateSelected; // Callback para pasar la fecha
+class SimpleDatePickerFormField extends StatelessWidget {
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime?> onDateSelected;
 
   const SimpleDatePickerFormField({
     Key? key,
+    required this.selectedDate,
     required this.onDateSelected,
   }) : super(key: key);
-
-  @override
-  _SimpleDatePickerFormFieldState createState() =>
-      _SimpleDatePickerFormFieldState();
-}
-
-class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
-  DateTime? _selectedDate;
-  final TextEditingController _dateController = TextEditingController();
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: selectedDate ?? DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 30)),
       lastDate: DateTime.now().add(const Duration(days: 7)),
       builder: (BuildContext context, Widget? child) {
@@ -49,18 +42,19 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
           ),
         );
       } else {
-        setState(() {
-          _selectedDate = pickedDate;
-          _dateController.text =
-              "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-        });
-        widget.onDateSelected(pickedDate); // Pasamos la fecha al callback
+        onDateSelected(pickedDate); // Notificar al padre del cambio
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController _dateController = TextEditingController(
+      text: selectedDate != null
+          ? "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}"
+          : '',
+    );
+
     return TextFormField(
       controller: _dateController,
       readOnly: true,
@@ -68,6 +62,7 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
       decoration: InputDecoration(
         labelText: 'Seleccione Fecha',
         labelStyle: TextStyle(
+          fontFamily: 'Urbanist',
           fontSize: 18,
           color: Colors.grey[800], // Color del label
         ),
@@ -87,18 +82,18 @@ class _SimpleDatePickerFormFieldState extends State<SimpleDatePickerFormField> {
           borderSide: BorderSide.none,
         ),
         filled: true,
-        fillColor: Colors.grey[200], 
+        fillColor: Colors.grey[200],
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Color(0xFF8F0B45), 
+            color: Color(0xFF8F0B45),
             width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
-            color: Color(0xFF8F0B45), 
+            color: Color(0xFF8F0B45),
             width: 1,
           ),
         ),

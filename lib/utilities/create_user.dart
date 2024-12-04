@@ -254,10 +254,9 @@ class _CreateUserState extends State<CreateUserPage> {
           const SizedBox(height: 12),
           ComboBox(
             itemsList: const [
-              'Arquitectura',
               'Ing. Sistemas',
-              'Ing. Civil',
             ],
+            onTap: () {},
             hintText: 'carrera',
             icon: const Icon(
               Icons.school,
@@ -399,7 +398,8 @@ Future<UserCredential?> createU(
       'name': student.name,
       'mail': student.email,
       'career': student.career,
-      'type': 'Student'
+      'type': 'Student',
+      'subjects': [] as List<String>
     });
 
     return userCredential;

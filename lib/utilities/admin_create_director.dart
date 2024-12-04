@@ -117,6 +117,7 @@ class _CreateDirectorState extends State<CreateDirector> {
                   // ComboBox para seleccionar carrera
                   ComboBox(
                     itemsList: careers,
+                    onTap: () => 1,
                     hintText: 'Carrera',
                     selectedValue: selectedCareer,
                     icon: const Icon(

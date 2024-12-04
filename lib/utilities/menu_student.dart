@@ -36,7 +36,9 @@ class StudentMainMenuState extends State<StudentMainMenu> {
     return [
       _streamRequest(),
       CreateRequest(student: widget.student),
-      Subjects_Config(),
+      Subjects_Config(
+        idStudent: widget.student.id,
+      ),
     ];
   }
 
