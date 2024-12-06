@@ -184,7 +184,8 @@ class CreateRequestState extends State<CreateRequest> {
         'estado': 'Pendiente',
         'reason': _reasonController.text,
         'fecha': selectedDate?.toIso8601String() ?? 'Fecha no seleccionada',
-        'userReference': reference
+        'userReference': reference,
+        'subject': selectedSubject ?? 'Sin Materia'
       });
 
       showAnimatedSnackBar(
@@ -462,7 +463,7 @@ class CreateRequestState extends State<CreateRequest> {
                                 'Adjuntar Evidencia',
                                 style: TextStyle(
                                   fontFamily: 'Urbanist',
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

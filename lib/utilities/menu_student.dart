@@ -190,21 +190,40 @@ class StudentMainMenuState extends State<StudentMainMenu> {
                 ],
               ),
               const SizedBox(height: 10),
+              Row(
+                children: [
+                  Text(
+                    "Materia ",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Text(
+                    "${data['subject'] ?? 'Sin Materia'}", // Manejo de campos nulos
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
               ElevatedButton.icon(
                 onPressed: () async {
                   await generateSingleReport(
                     data,
                     widget.student.name,
                     widget.student.career,
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('PDF generado y descargado.')),
+                    data['subject'] ?? 'Sin materia Asignada',
                   );
                 },
                 icon: const Icon(Icons.download),
                 label: const Text('Descargar PDF'),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: mainColor, foregroundColor: Colors.white),
+                  backgroundColor: mainColor,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ],
           ),
@@ -223,7 +242,11 @@ class StudentMainMenuState extends State<StudentMainMenu> {
   }
 
   Future<void> generateSingleReport(
-      Map<String, dynamic> data, String studentName, String career) async {
+    Map<String, dynamic> data,
+    String studentName,
+    String career,
+    String materia,
+  ) async {
     final pdf = pw.Document();
 
     // Construcción Básica para el PDF
@@ -234,6 +257,8 @@ class StudentMainMenuState extends State<StudentMainMenu> {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text("Nombre Estudiante: $studentName"),
+              pw.SizedBox(height: 4),
+              pw.Text("Materia: $materia"),
               pw.SizedBox(height: 4),
               pw.Text("Carrera: $career"),
               pw.SizedBox(height: 4),

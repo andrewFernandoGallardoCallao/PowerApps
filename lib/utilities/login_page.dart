@@ -303,7 +303,7 @@ class _LoginPageState extends State<LoginPage> {
                                         'Iniciar Sesión',
                                         style: TextStyle(
                                           fontFamily: 'Urbanist',
-                                          fontSize: 18,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
